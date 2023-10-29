@@ -8,16 +8,10 @@ jobs:
   build-linux-gcc:
     runs-on: ubuntu-22.04
     steps:
-      - name: test astrogator
+      - name: test & build astrogator
         run: |
           make run_tests
-        env:
-          CC: gcc
-        run: |
           make clean
-      - name: build astrogator
-        run: |
           make build
         env:
           CC: gcc
-

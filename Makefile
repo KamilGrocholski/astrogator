@@ -1,15 +1,20 @@
-source_files = src/main.c src/compiler/lexer/lexer.c
+source_files_main = src/main.c
+source_files = src/compiler/lexer/lexer.c
 output_binary = bin/astrogator
 
-source_tests_files = tests/lexer.c
-output_tests_binary = bin/tests
+source_test_files_main = test/main.test.c
+source_test_files = test/lexer/lexer.test.c
+output_test_binary = bin/test
 
 build:
 	rm -rf bin && mkdir bin || echo
-	gcc $(source_files) -o $(output_binary)
+	gcc $(source_files_main) $(source_files) -o $(output_binary)
 	./bin/astrogator -h
 
-test:
+run_tests: 
 	rm -rf bin && mkdir bin || echo
-	gcc $(source_tests_files) -o $(output_tests_binary)
-	./bin/tests -h
+	gcc $(source_test_files_main) $(source_files) $(source_test_files) -o $(output_test_binary)
+	./bin/test -h
+
+clean: 
+	rm -rf bin

@@ -13,8 +13,8 @@
     - [ ] Add different sizes of ints (u8, i8, u16, i16, ...)
     - [ ] Try multiple implementations
     - [ ] Tests
-- [ ] Makefile
+- [x] Makefile
     - [x] Make it easier for testing
-- [ ] Github workflows
-    - [ ] Build
-    - [ ] Test
+- [x] Github workflows
+    - [x] Build
+    - [x] Test

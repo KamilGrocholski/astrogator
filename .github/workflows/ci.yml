@@ -13,6 +13,8 @@ jobs:
           make run_tests
         env:
           CC: gcc
+        run: |
+          make clean
       - name: build astrogator
         run: |
           make build

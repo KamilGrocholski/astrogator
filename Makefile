@@ -7,12 +7,10 @@ source_test_files = test/lexer/lexer.test.c
 output_test_binary = bin/test
 
 build:
-	rm -rf bin && mkdir bin || echo
 	gcc $(source_files_main) $(source_files) -o $(output_binary)
 	./bin/astrogator -h
 
 run_tests: 
-	rm -rf bin && mkdir bin || echo
 	gcc $(source_test_files_main) $(source_files) $(source_test_files) -o $(output_test_binary)
 	./bin/test -h
 

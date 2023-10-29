@@ -1,7 +1,7 @@
 <h1>Todos</h1>
 
 - [ ] Lexer
-    - [ ] Add basic tokenization
+    - [x] Add basic tokenization
     - [ ] Tests
 - [ ] Parser
     - [ ] Add variables parser
@@ -14,4 +14,7 @@
     - [ ] Try multiple implementations
     - [ ] Tests
 - [ ] Makefile
-    - [ ] Make it easier for testing
+    - [x] Make it easier for testing
+- [ ] Github workflows
+    - [ ] Build
+    - [ ] Test

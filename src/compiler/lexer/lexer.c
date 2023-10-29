@@ -7,6 +7,7 @@
 #include "lexer.h"
 
 static void _lexer_read_char(Lexer *lexer);
+static char _lexer_peek_char(Lexer *lexer);
 static void _lexer_skip_whitespace(Lexer *lexer);
 static char *_lexer_read_string(Lexer *lexer);
 static char *_lexer_read_int(Lexer *lexer);
@@ -93,10 +94,23 @@ Token *lexer_get_next_token(Lexer *lexer) {
     token = token_new(TOKEN_KIND_R_CURLY, "}");
     break;
   case '!':
-    token = token_new(TOKEN_KIND_BANG, "!");
+    if (_lexer_peek_char(lexer) == '=') {
+      _lexer_read_char(lexer);
+      token = token_new(TOKEN_KIND_NOT_EQUAL, "!=");
+    } else {
+      token = token_new(TOKEN_KIND_BANG, "!");
+    }
+    break;
+  case '?':
+    token = token_new(TOKEN_KIND_QUESTION_MARK, "?");
     break;
   case '=':
-    token = token_new(TOKEN_KIND_EQUAL, "=");
+    if (_lexer_peek_char(lexer) == '=') {
+      _lexer_read_char(lexer);
+      token = token_new(TOKEN_KIND_EQUAL, "==");
+    } else {
+      token = token_new(TOKEN_KIND_ASSIGN, "=");
+    }
     break;
   case '-':
     token = token_new(TOKEN_KIND_MINUS, "-");
@@ -106,6 +120,12 @@ Token *lexer_get_next_token(Lexer *lexer) {
     break;
   case '*':
     token = token_new(TOKEN_KIND_ASTERISK, "*");
+    break;
+  case '>':
+    token = token_new(TOKEN_KIND_GT, ">");
+    break;
+  case '<':
+    token = token_new(TOKEN_KIND_LT, "<");
     break;
   case '"':
     token = token_new(TOKEN_KIND_STRING, _lexer_read_string(lexer));
@@ -147,6 +167,14 @@ static void _lexer_read_char(Lexer *lexer) {
 
   lexer->position = lexer->read_position;
   lexer->read_position += 1;
+}
+
+static char _lexer_peek_char(Lexer *lexer) {
+  if (lexer->read_position >= lexer->input_len) {
+    return '\0';
+  } else {
+    return lexer->input[lexer->read_position];
+  }
 }
 
 static void _lexer_skip_whitespace(Lexer *lexer) {

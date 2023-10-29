@@ -5,17 +5,17 @@ on:
     branches: [ main ]
 
 jobs: 
-  build-linux-gcc: 
-  runs-on: ubuntu-22.04
-  steps:
-    - name: test astrogator
-      run: |
-        make run_tests
-      env:
-        CC: gcc
-    - name: build astrogator
-      run: |
-        make build
-      env:
-        CC: gcc
+  build-linux-gcc:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: test astrogator
+        run: |
+          make run_tests
+        env:
+          CC: gcc
+      - name: build astrogator
+        run: |
+          make build
+        env:
+          CC: gcc
 

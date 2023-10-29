@@ -5,6 +5,10 @@
 
 ## Build
 
+<p>
+It executes the main file in /bin after the build is completed
+</p>
+
 ```bash
 make build
 ```
@@ -12,6 +16,6 @@ make build
 ## Tests
 
 ```bash
-make test
+make run_tests
 ```
 

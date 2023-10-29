@@ -10,10 +10,18 @@ jobs:
     steps:
       - name: checkout repo
         uses: actions/checkout@main
-      - name: test & build astrogator
-        run: |
-          make run_tests
-          make clean
-          make build
+
+      - name: Test
+        run: make run_tests
+        env:
+          CC: gcc
+
+      - name: Clean
+        run: make clean
+        env:
+          CC: gcc
+
+      - name: Build
+        run: make build
         env:
           CC: gcc

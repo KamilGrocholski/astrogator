@@ -8,6 +8,8 @@ jobs:
   build-linux-gcc:
     runs-on: ubuntu-22.04
     steps:
+      - name: checkout repo
+        uses: actions/checkout@main
       - name: test & build astrogator
         run: |
           make run_tests

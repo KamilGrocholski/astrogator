@@ -131,12 +131,12 @@ void test_lexer_keywords() {
   token_free(token5);
 
   lexer_free(lexer);
-  _print_end_section("ident");
+  _print_end_section("keywords");
 }
 
 void test_lexer_operators() {
   _print_start_section("operators");
-  char *valid_input = "+ - * =";
+  char *valid_input = "+ - * = ? ! != == < >";
   Lexer *lexer = lexer_new(valid_input);
 
   Token *token1 = lexer_get_next_token(lexer);
@@ -152,12 +152,36 @@ void test_lexer_operators() {
   token_free(token3);
 
   Token *token4 = lexer_get_next_token(lexer);
-  test_token(token4, TOKEN_KIND_EQUAL, "=");
+  test_token(token4, TOKEN_KIND_ASSIGN, "=");
   token_free(token4);
 
   Token *token5 = lexer_get_next_token(lexer);
-  test_token(token5, TOKEN_KIND_EOF, "eof");
+  test_token(token5, TOKEN_KIND_QUESTION_MARK, "?");
   token_free(token5);
+
+  Token *token6 = lexer_get_next_token(lexer);
+  test_token(token6, TOKEN_KIND_BANG, "!");
+  token_free(token6);
+
+  Token *token7 = lexer_get_next_token(lexer);
+  test_token(token7, TOKEN_KIND_NOT_EQUAL, "!=");
+  token_free(token7);
+
+  Token *token8 = lexer_get_next_token(lexer);
+  test_token(token8, TOKEN_KIND_EQUAL, "==");
+  token_free(token8);
+
+  Token *token9 = lexer_get_next_token(lexer);
+  test_token(token9, TOKEN_KIND_LT, "<");
+  token_free(token9);
+
+  Token *token10 = lexer_get_next_token(lexer);
+  test_token(token10, TOKEN_KIND_GT, ">");
+  token_free(token10);
+
+  Token *token11 = lexer_get_next_token(lexer);
+  test_token(token11, TOKEN_KIND_EOF, "eof");
+  token_free(token11);
 
   lexer_free(lexer);
   _print_end_section("operators");

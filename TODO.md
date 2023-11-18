@@ -6,22 +6,12 @@
 - [ ] Parser
     - [ ] Add variables parser
     - [ ] Add basic arithmetic parser
-    - [ ] Tests
-- [ ] AST
-    - [ ] Add variables nodes
-    - [ ] Add arithmetic nodes
     - [ ] Add different sizes of ints (u8, i8, u16, i16, ...)
-    - [ ] Try multiple implementations
     - [ ] Tests
+- [ ] Testing
+    - [ ] Create generic test functions
 - [x] Makefile
     - [x] Make it easier for testing
 - [x] Github workflows
     - [x] Build
     - [x] Test
-
-<h1>example</h1>
-
-inizia u8 w = 2;
-per idx, val in x {
-    print(idx, val);
-}

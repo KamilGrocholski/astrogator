@@ -52,7 +52,7 @@ typedef struct Parser {
 } Parser;
 
 typedef struct Program {
-  size_t stmts_idx;
+  size_t stmts_len;
   Stmt *stmts;
 } Program;
 

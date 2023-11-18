@@ -21,9 +21,9 @@ void test_parser_stmt_let() {
 
   Program *program = parser_parse_program(parser);
 
-  /* printf("%zu\n", program->stmts_idx); */
+  /* printf("%zu\n", program->stmts_len); */
 
-  assert(expected_stmts_len == program->stmts_idx);
+  assert(expected_stmts_len == program->stmts_len);
 
   Stmt stmt = program->stmts[0];
   /* printf("%s\n", &stmt.sb.let_decl_assign.ident); */

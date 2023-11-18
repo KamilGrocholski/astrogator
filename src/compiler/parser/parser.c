@@ -37,7 +37,7 @@ void parser_free(Parser *parser) {
 
 Program *parser_parse_program(Parser *parser) {
   Program *program = malloc(sizeof(Program));
-  program->stmts_idx = 0;
+  program->stmts_len = 0;
   Stmt *stmts = malloc(sizeof(Stmt) * 256);
   program->stmts = stmts;
 
@@ -45,8 +45,8 @@ Program *parser_parse_program(Parser *parser) {
     /* printf("before stmt: %s\n", parser->current_token->literal); */
     Stmt *stmt = _parser_parse_stmt(parser);
     if (stmt) {
-      stmts[program->stmts_idx] = *stmt;
-      program->stmts_idx++;
+      stmts[program->stmts_len] = *stmt;
+      program->stmts_len++;
     }
     _parser_advance(parser);
   }

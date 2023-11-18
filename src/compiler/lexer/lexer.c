@@ -256,6 +256,8 @@ static TokenKind _get_token_kind_from_literal(const char *literal, size_t len) {
     return TOKEN_KIND_CONST;
   } else if (strncmp(literal, "use", len) == 0) {
     return TOKEN_KIND_USE;
+  } else if (strncmp(literal, "int", len) == 0) {
+    return TOKEN_KIND_VAL_TYPE_INT;
   }
 
   return TOKEN_KIND_IDENT;

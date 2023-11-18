@@ -18,3 +18,10 @@
 - [x] Github workflows
     - [x] Build
     - [x] Test
+
+<h1>example</h1>
+
+inizia u8 w = 2;
+per idx, val in x {
+    print(idx, val);
+}

@@ -1,4 +1,5 @@
-#include "./lexer/lexer.test.h"
+#include "lexer/lexer.test.h"
+#include "parser/parser.test.h"
 
 int main() {
 
@@ -9,6 +10,9 @@ int main() {
   test_lexer_string();
   test_lexer_operators();
   test_lexer_delimiters();
+  test_lexer_let();
+
+  test_parser_stmt_let();
 
   return 0;
 }

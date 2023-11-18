@@ -16,4 +16,6 @@ void test_lexer_keywords();
 void test_lexer_operators();
 void test_lexer_delimiters();
 
+void test_lexer_let();
+
 #endif // !_LEXER_TEST_H

@@ -1,11 +1,11 @@
 bin_dir = bin
 
 source_files_main = src/main.c
-source_files = src/compiler/lexer/lexer.c
+source_files = src/compiler/lexer/lexer.c src/compiler/parser/parser.c
 output_binary = $(bin_dir)/astrogator
 
 source_test_files_main = test/main.test.c
-source_test_files = test/lexer/lexer.test.c
+source_test_files = test/lexer/lexer.test.c test/parser/parser.test.c
 output_test_binary = $(bin_dir)/test
 
 build:

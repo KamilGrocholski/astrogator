@@ -1,12 +1,15 @@
 <h1>Todos</h1>
 
-- [ ] Lexer
+- [x] Lexer
     - [x] Add basic tokenization
-    - [ ] Tests
+    - [x] Tests
 - [ ] Parser
-    - [ ] Add variables parser
-    - [ ] Add basic arithmetic parser
-    - [ ] Add different sizes of ints (u8, i8, u16, i16, ...)
+    - [x] Let
+        - [x] int
+        - [x] string
+        - [x] bool
+        - [ ] array
+        - [ ] object
     - [ ] Tests
 - [ ] Testing
     - [ ] Create generic test functions

@@ -1,9 +1,8 @@
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "../../src/compiler/lexer/lexer.h"
+#include "../../src/compiler/lexer.h"
 #include "lexer.test.h"
 
 #define SHOULD_WITH_PRINT 1
@@ -107,7 +106,7 @@ void test_lexer_ident() {
 
 void test_lexer_keywords() {
   _print_start_section("keywords");
-  char *valid_input = "let const return use int";
+  char *valid_input = "let const return use int string bool true false";
   Lexer *lexer = lexer_new(valid_input);
 
   Token *token1 = lexer_get_next_token(lexer);
@@ -131,8 +130,24 @@ void test_lexer_keywords() {
   token_free(token5);
 
   Token *token6 = lexer_get_next_token(lexer);
-  test_token(token6, TOKEN_KIND_EOF, "eof");
+  test_token(token6, TOKEN_KIND_VAL_TYPE_STRING, "string");
   token_free(token6);
+
+  Token *token7 = lexer_get_next_token(lexer);
+  test_token(token7, TOKEN_KIND_VAL_TYPE_BOOL, "bool");
+  token_free(token7);
+
+  Token *token8 = lexer_get_next_token(lexer);
+  test_token(token8, TOKEN_KIND_TRUE, "true");
+  token_free(token8);
+
+  Token *token9 = lexer_get_next_token(lexer);
+  test_token(token9, TOKEN_KIND_FALSE, "false");
+  token_free(token9);
+
+  Token *token10 = lexer_get_next_token(lexer);
+  test_token(token10, TOKEN_KIND_EOF, "eof");
+  token_free(token10);
 
   lexer_free(lexer);
   _print_end_section("keywords");

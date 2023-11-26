@@ -6,16 +6,16 @@
 
 #include "lexer.h"
 
-static void _lexer_read_char(Lexer *lexer);
-static char _lexer_peek_char(Lexer *lexer);
-static void _lexer_skip_whitespace(Lexer *lexer);
-static char *_lexer_read_string(Lexer *lexer);
-static char *_lexer_read_int(Lexer *lexer);
-static char *_lexer_read_ident(Lexer *lexer);
-static TokenKind _get_token_kind_from_literal(const char *literal, size_t len);
+static void read_char(Lexer *lexer);
+static char peek_char(Lexer *lexer);
+static void skip_whitespace(Lexer *lexer);
+static char *read_string(Lexer *lexer);
+static char *read_int(Lexer *lexer);
+static char *read_ident(Lexer *lexer);
+static TokenKind get_token_kind_from_literal(const char *literal, size_t len);
 
-static uint8_t _is_letter(char ch);
-static char *_str_slice(char *src, size_t start, size_t end);
+static uint8_t is_aplha(char ch);
+static char *str_slice(char *src, size_t start, size_t end);
 
 Lexer *lexer_new(char *input) {
   Lexer *lexer = (Lexer *)malloc(sizeof(Lexer));
@@ -24,7 +24,7 @@ Lexer *lexer_new(char *input) {
   lexer->position = 0;
   lexer->read_position = 0;
 
-  _lexer_read_char(lexer);
+  read_char(lexer);
 
   return lexer;
 }
@@ -58,7 +58,7 @@ void token_stringify(Token *token) {
 }
 
 Token *lexer_get_next_token(Lexer *lexer) {
-  _lexer_skip_whitespace(lexer);
+  skip_whitespace(lexer);
 
   Token *token = NULL;
 
@@ -94,8 +94,8 @@ Token *lexer_get_next_token(Lexer *lexer) {
     token = token_new(TOKEN_KIND_R_CURLY, "}");
     break;
   case '!':
-    if (_lexer_peek_char(lexer) == '=') {
-      _lexer_read_char(lexer);
+    if (peek_char(lexer) == '=') {
+      read_char(lexer);
       token = token_new(TOKEN_KIND_NOT_EQUAL, "!=");
     } else {
       token = token_new(TOKEN_KIND_BANG, "!");
@@ -105,8 +105,8 @@ Token *lexer_get_next_token(Lexer *lexer) {
     token = token_new(TOKEN_KIND_QUESTION_MARK, "?");
     break;
   case '=':
-    if (_lexer_peek_char(lexer) == '=') {
-      _lexer_read_char(lexer);
+    if (peek_char(lexer) == '=') {
+      read_char(lexer);
       token = token_new(TOKEN_KIND_EQUAL, "==");
     } else {
       token = token_new(TOKEN_KIND_ASSIGN, "=");
@@ -128,22 +128,22 @@ Token *lexer_get_next_token(Lexer *lexer) {
     token = token_new(TOKEN_KIND_LT, "<");
     break;
   case '"':
-    token = token_new(TOKEN_KIND_STRING, _lexer_read_string(lexer));
+    token = token_new(TOKEN_KIND_STRING, read_string(lexer));
     break;
   case '\0':
     token = token_new(TOKEN_KIND_EOF, "eof");
     break;
   }
 
-  if (_is_letter(lexer->ch)) {
-    char *ident_literal = _lexer_read_ident(lexer);
+  if (is_aplha(lexer->ch)) {
+    char *ident_literal = read_ident(lexer);
     size_t len = strlen(ident_literal);
-    TokenKind kind = _get_token_kind_from_literal(ident_literal, len);
+    TokenKind kind = get_token_kind_from_literal(ident_literal, len);
     token = token_new(kind, ident_literal);
 
     return token;
   } else if (isdigit(lexer->ch)) {
-    char *int_literal = _lexer_read_int(lexer);
+    char *int_literal = read_int(lexer);
     token = token_new(TOKEN_KIND_INT, int_literal);
 
     return token;
@@ -153,12 +153,12 @@ Token *lexer_get_next_token(Lexer *lexer) {
     token = token_new(TOKEN_KIND_ILLEGAL, &lexer->ch);
   }
 
-  _lexer_read_char(lexer);
+  read_char(lexer);
 
   return token;
 }
 
-static void _lexer_read_char(Lexer *lexer) {
+static void read_char(Lexer *lexer) {
   if (lexer->read_position >= lexer->input_len) {
     lexer->ch = '\0';
   } else {
@@ -169,7 +169,7 @@ static void _lexer_read_char(Lexer *lexer) {
   lexer->read_position += 1;
 }
 
-static char _lexer_peek_char(Lexer *lexer) {
+static char peek_char(Lexer *lexer) {
   if (lexer->read_position >= lexer->input_len) {
     return '\0';
   } else {
@@ -177,15 +177,15 @@ static char _lexer_peek_char(Lexer *lexer) {
   }
 }
 
-static void _lexer_skip_whitespace(Lexer *lexer) {
+static void skip_whitespace(Lexer *lexer) {
   while (lexer->ch == ' ' || lexer->ch == '\r' || lexer->ch == '\n' ||
          lexer->ch == '\t') {
-    _lexer_read_char(lexer);
+    read_char(lexer);
   }
 }
 
-static char *_lexer_read_string(Lexer *lexer) {
-  _lexer_read_char(lexer);
+static char *read_string(Lexer *lexer) {
+  read_char(lexer);
 
   size_t start = lexer->position;
 
@@ -193,47 +193,47 @@ static char *_lexer_read_string(Lexer *lexer) {
     if (lexer->ch == '\0') {
       break;
     }
-    _lexer_read_char(lexer);
+    read_char(lexer);
   }
 
   size_t end = lexer->position;
 
-  return _str_slice(lexer->input, start, end);
+  return str_slice(lexer->input, start, end);
 }
 
-static char *_lexer_read_int(Lexer *lexer) {
+static char *read_int(Lexer *lexer) {
   size_t start = lexer->position;
 
-  _lexer_read_char(lexer);
+  read_char(lexer);
 
   while (isdigit(lexer->ch)) {
-    _lexer_read_char(lexer);
+    read_char(lexer);
   }
 
   size_t end = lexer->position;
 
-  return _str_slice(lexer->input, start, end);
+  return str_slice(lexer->input, start, end);
 }
 
-static char *_lexer_read_ident(Lexer *lexer) {
+static char *read_ident(Lexer *lexer) {
   size_t start = lexer->position;
 
-  _lexer_read_char(lexer);
+  read_char(lexer);
 
-  while (_is_letter(lexer->ch)) {
-    _lexer_read_char(lexer);
+  while (is_aplha(lexer->ch)) {
+    read_char(lexer);
   }
 
   size_t end = lexer->position;
 
-  return _str_slice(lexer->input, start, end);
+  return str_slice(lexer->input, start, end);
 }
 
-static uint8_t _is_letter(char ch) {
+static uint8_t is_aplha(char ch) {
   return ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_');
 }
 
-static char *_str_slice(char *src, size_t start, size_t end) {
+static char *str_slice(char *src, size_t start, size_t end) {
   size_t i;
   size_t size = (end - start);
   char *output = (char *)malloc(size * sizeof(char));
@@ -247,7 +247,7 @@ static char *_str_slice(char *src, size_t start, size_t end) {
   return output;
 }
 
-static TokenKind _get_token_kind_from_literal(const char *literal, size_t len) {
+static TokenKind get_token_kind_from_literal(const char *literal, size_t len) {
   if (strncmp(literal, "let", len) == 0) {
     return TOKEN_KIND_LET;
   } else if (strncmp(literal, "return", len) == 0) {
@@ -256,9 +256,19 @@ static TokenKind _get_token_kind_from_literal(const char *literal, size_t len) {
     return TOKEN_KIND_CONST;
   } else if (strncmp(literal, "use", len) == 0) {
     return TOKEN_KIND_USE;
+  } else if (strncmp(literal, "true", len) == 0) {
+    return TOKEN_KIND_TRUE;
+  } else if (strncmp(literal, "false", len) == 0) {
+    return TOKEN_KIND_FALSE;
   } else if (strncmp(literal, "int", len) == 0) {
     return TOKEN_KIND_VAL_TYPE_INT;
+  } else if (strncmp(literal, "string", len) == 0) {
+    return TOKEN_KIND_VAL_TYPE_STRING;
+  } else if (strncmp(literal, "bool", len) == 0) {
+    return TOKEN_KIND_VAL_TYPE_BOOL;
   }
 
   return TOKEN_KIND_IDENT;
 }
+
+const char *get_token_name_by_val(TokenKind kind) { return TokensNames[kind]; }

@@ -12,7 +12,9 @@ int main() {
   test_lexer_delimiters();
   test_lexer_let();
 
-  test_parser_stmt_let();
+  test_parser_stmt_let_int();
+  test_parser_stmt_let_string();
+  test_parser_stmt_let_bool();
 
   return 0;
 }

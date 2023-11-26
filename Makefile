@@ -1,7 +1,7 @@
 bin_dir = bin
 
 source_files_main = src/main.c
-source_files = src/compiler/lexer/lexer.c src/compiler/parser/parser.c
+source_files = src/compiler/lexer.c src/compiler/parser.c src/compiler/program.c
 output_binary = $(bin_dir)/astrogator
 
 source_test_files_main = test/main.test.c

@@ -93,6 +93,10 @@ static void parse_value_by_type(Parser *p, Stmt *stmt, Exp *exp) {
       // TODO
       exp->u.bool_value = FALSE;
     }
+  } else if (is_curr_token(p, TOKEN_KIND_L_BRACKET)) {
+    exp->kind = EXP_KIND_ARRAY;
+    eat_or_error(p, TOKEN_KIND_L_BRACKET);
+    eat_or_error(p, TOKEN_KIND_R_BRACKET);
   }
 
   next_must_be(p, TOKEN_KIND_SEMICOLON);

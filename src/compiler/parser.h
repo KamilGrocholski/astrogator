@@ -19,6 +19,7 @@ typedef enum ExpKind {
   EXP_KIND_STRING,
   EXP_KIND_BOOL,
   EXP_KIND_IDENT,
+  EXP_KIND_ARRAY,
 } ExpKind;
 
 typedef struct Exp {
@@ -28,6 +29,11 @@ typedef struct Exp {
     char *string_value;
     char *ident;
     uint8_t bool_value;
+    struct {
+      size_t len;
+      size_t item_size;
+      void *first_item;
+    } array;
   } u;
 } Exp;
 

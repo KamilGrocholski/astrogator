@@ -13,8 +13,12 @@
     - [ ] Tests
 - [ ] Testing
     - [ ] Create generic test functions
+        - [x] Tokens
 - [x] Makefile
     - [x] Make it easier for testing
 - [x] Github workflows
     - [x] Build
     - [x] Test
+
+why strcmp works on the bool token but 
+strncmp treats "b" as "bool" and so on

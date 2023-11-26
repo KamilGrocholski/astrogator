@@ -7,28 +7,20 @@
 
 #define SHOULD_WITH_PRINT 1
 
-static void _print_start_section(char *section) {
-  if (SHOULD_WITH_PRINT) {
-    printf("START TESTING: %s \n", section);
-  }
-}
+static void _print_start_section(char *section);
 
-static void _print_end_section(char *section) {
-  if (SHOULD_WITH_PRINT) {
-    printf("END TESTING: %s \n", section);
-  }
-}
+static void _print_end_section(char *section);
 
 void test_token(Token *token, TokenKind expected_kind, char *expected_literal) {
   if (SHOULD_WITH_PRINT) {
     printf("-- Token kind expected: |%d|, got: |%d| \n", expected_kind,
            token->kind);
   }
-  assert(expected_kind == token->kind);
   if (SHOULD_WITH_PRINT) {
     printf("-- Token literal expected: |%s|, got: |%s| \n", expected_literal,
            token->literal);
   }
+  assert(expected_kind == token->kind);
   assert(strcmp(expected_literal, token->literal) == 0);
 }
 
@@ -45,232 +37,139 @@ void test_token_free() {
   token_free(token);
 }
 
+void test_tokens(char *name, char *input, TokenTest token_tests[],
+                 size_t token_tests_len) {
+  _print_start_section(name);
+  Lexer *lexer = lexer_new(input);
+  Token *token = NULL;
+
+  for (size_t i = 0; i < token_tests_len; i++) {
+    token = lexer_get_next_token(lexer);
+    test_token(token, token_tests[i].kind, token_tests[i].literal);
+    token_free(token);
+  }
+  _print_end_section(name);
+}
+
 void test_lexer_string() {
-  _print_start_section("string");
-  char *valid_input = "\"a string with whitespaces\"";
-  Lexer *lexer = lexer_new(valid_input);
-
-  Token *token1 = lexer_get_next_token(lexer);
-  test_token(token1, TOKEN_KIND_STRING, "a string with whitespaces");
-  token_free(token1);
-
-  Token *token2 = lexer_get_next_token(lexer);
-  test_token(token2, TOKEN_KIND_EOF, "eof");
-  token_free(token2);
-
-  lexer_free(lexer);
-  _print_end_section("string");
+  char *input = "\"a string with whitespaces\"";
+  struct TokenTest token_tests[] = {
+      {TOKEN_KIND_STRING, "a string with whitespaces"},
+      {TOKEN_KIND_EOF, "eof"},
+  };
+  test_tokens("string", input, token_tests,
+              sizeof(token_tests) / sizeof(token_tests[0]));
 }
 
 void test_lexer_int() {
-  _print_start_section("int");
-  char *valid_input = " 1234  21234";
-  Lexer *lexer = lexer_new(valid_input);
-
-  Token *token1 = lexer_get_next_token(lexer);
-  test_token(token1, TOKEN_KIND_INT, "1234");
-  token_free(token1);
-
-  Token *token2 = lexer_get_next_token(lexer);
-  test_token(token2, TOKEN_KIND_INT, "21234");
-  token_free(token2);
-
-  Token *token3 = lexer_get_next_token(lexer);
-  test_token(token3, TOKEN_KIND_EOF, "eof");
-  token_free(token3);
-
-  lexer_free(lexer);
-  _print_end_section("int");
+  char *input = " 1234  21234";
+  struct TokenTest token_tests[] = {
+      {TOKEN_KIND_INT, "1234"},
+      {TOKEN_KIND_INT, "21234"},
+      {TOKEN_KIND_EOF, "eof"},
+  };
+  test_tokens("ident", input, token_tests,
+              sizeof(token_tests) / sizeof(token_tests[0]));
 }
 
 void test_lexer_ident() {
-  _print_start_section("ident");
-  char *valid_input = "first_ident second_ident";
-  Lexer *lexer = lexer_new(valid_input);
-
-  Token *token1 = lexer_get_next_token(lexer);
-  test_token(token1, TOKEN_KIND_IDENT, "first_ident");
-  token_free(token1);
-
-  Token *token2 = lexer_get_next_token(lexer);
-  test_token(token2, TOKEN_KIND_IDENT, "second_ident");
-  token_free(token2);
-
-  Token *token3 = lexer_get_next_token(lexer);
-  test_token(token3, TOKEN_KIND_EOF, "eof");
-  token_free(token3);
-
-  lexer_free(lexer);
-  _print_end_section("ident");
+  char *input = "first_ident second_ident";
+  struct TokenTest token_tests[] = {
+      {TOKEN_KIND_IDENT, "first_ident"},
+      {TOKEN_KIND_IDENT, "second_ident"},
+      {TOKEN_KIND_EOF, "eof"},
+  };
+  test_tokens("ident", input, token_tests,
+              sizeof(token_tests) / sizeof(token_tests[0]));
 }
 
 void test_lexer_keywords() {
-  _print_start_section("keywords");
-  char *valid_input = "let const return use int string bool true false";
-  Lexer *lexer = lexer_new(valid_input);
-
-  Token *token1 = lexer_get_next_token(lexer);
-  test_token(token1, TOKEN_KIND_LET, "let");
-  token_free(token1);
-
-  Token *token2 = lexer_get_next_token(lexer);
-  test_token(token2, TOKEN_KIND_CONST, "const");
-  token_free(token2);
-
-  Token *token3 = lexer_get_next_token(lexer);
-  test_token(token3, TOKEN_KIND_RETURN, "return");
-  token_free(token3);
-
-  Token *token4 = lexer_get_next_token(lexer);
-  test_token(token4, TOKEN_KIND_USE, "use");
-  token_free(token4);
-
-  Token *token5 = lexer_get_next_token(lexer);
-  test_token(token5, TOKEN_KIND_VAL_TYPE_INT, "int");
-  token_free(token5);
-
-  Token *token6 = lexer_get_next_token(lexer);
-  test_token(token6, TOKEN_KIND_VAL_TYPE_STRING, "string");
-  token_free(token6);
-
-  Token *token7 = lexer_get_next_token(lexer);
-  test_token(token7, TOKEN_KIND_VAL_TYPE_BOOL, "bool");
-  token_free(token7);
-
-  Token *token8 = lexer_get_next_token(lexer);
-  test_token(token8, TOKEN_KIND_TRUE, "true");
-  token_free(token8);
-
-  Token *token9 = lexer_get_next_token(lexer);
-  test_token(token9, TOKEN_KIND_FALSE, "false");
-  token_free(token9);
-
-  Token *token10 = lexer_get_next_token(lexer);
-  test_token(token10, TOKEN_KIND_EOF, "eof");
-  token_free(token10);
-
-  lexer_free(lexer);
-  _print_end_section("keywords");
+  char *input = "let const return use int string bool true false fn";
+  struct TokenTest token_tests[] = {
+      {TOKEN_KIND_LET, "let"},
+      {TOKEN_KIND_CONST, "const"},
+      {TOKEN_KIND_RETURN, "return"},
+      {TOKEN_KIND_USE, "use"},
+      {TOKEN_KIND_VAL_TYPE_INT, "int"},
+      {TOKEN_KIND_VAL_TYPE_STRING, "string"},
+      {TOKEN_KIND_VAL_TYPE_BOOL, "bool"},
+      {TOKEN_KIND_TRUE, "true"},
+      {TOKEN_KIND_FALSE, "false"},
+      {TOKEN_KIND_FUNCTION, "fn"},
+      {TOKEN_KIND_EOF, "eof"},
+  };
+  test_tokens("keywords", input, token_tests,
+              sizeof(token_tests) / sizeof(token_tests[0]));
 }
 
 void test_lexer_operators() {
-  _print_start_section("operators");
-  char *valid_input = "+ - * = ? ! != == < >";
-  Lexer *lexer = lexer_new(valid_input);
-
-  Token *token1 = lexer_get_next_token(lexer);
-  test_token(token1, TOKEN_KIND_PLUS, "+");
-  token_free(token1);
-
-  Token *token2 = lexer_get_next_token(lexer);
-  test_token(token2, TOKEN_KIND_MINUS, "-");
-  token_free(token2);
-
-  Token *token3 = lexer_get_next_token(lexer);
-  test_token(token3, TOKEN_KIND_ASTERISK, "*");
-  token_free(token3);
-
-  Token *token4 = lexer_get_next_token(lexer);
-  test_token(token4, TOKEN_KIND_ASSIGN, "=");
-  token_free(token4);
-
-  Token *token5 = lexer_get_next_token(lexer);
-  test_token(token5, TOKEN_KIND_QUESTION_MARK, "?");
-  token_free(token5);
-
-  Token *token6 = lexer_get_next_token(lexer);
-  test_token(token6, TOKEN_KIND_BANG, "!");
-  token_free(token6);
-
-  Token *token7 = lexer_get_next_token(lexer);
-  test_token(token7, TOKEN_KIND_NOT_EQUAL, "!=");
-  token_free(token7);
-
-  Token *token8 = lexer_get_next_token(lexer);
-  test_token(token8, TOKEN_KIND_EQUAL, "==");
-  token_free(token8);
-
-  Token *token9 = lexer_get_next_token(lexer);
-  test_token(token9, TOKEN_KIND_LT, "<");
-  token_free(token9);
-
-  Token *token10 = lexer_get_next_token(lexer);
-  test_token(token10, TOKEN_KIND_GT, ">");
-  token_free(token10);
-
-  Token *token11 = lexer_get_next_token(lexer);
-  test_token(token11, TOKEN_KIND_EOF, "eof");
-  token_free(token11);
-
-  lexer_free(lexer);
-  _print_end_section("operators");
+  char *input = "+ - * = ? ! != == < >";
+  struct TokenTest token_tests[] = {
+      {TOKEN_KIND_PLUS, "+"},
+      {TOKEN_KIND_MINUS, "-"},
+      {TOKEN_KIND_ASTERISK, "*"},
+      {TOKEN_KIND_ASSIGN, "="},
+      {TOKEN_KIND_QUESTION_MARK, "?"},
+      {TOKEN_KIND_BANG, "!"},
+      {TOKEN_KIND_NOT_EQUAL, "!="},
+      {TOKEN_KIND_EQUAL, "=="},
+      {TOKEN_KIND_LT, "<"},
+      {TOKEN_KIND_GT, ">"},
+      {TOKEN_KIND_EOF, "eof"},
+  };
+  test_tokens("operators", input, token_tests,
+              sizeof(token_tests) / sizeof(token_tests[0]));
 }
 
 void test_lexer_delimiters() {
-  _print_start_section("delimiters");
-  char *valid_input = ", . ; :";
-  Lexer *lexer = lexer_new(valid_input);
-
-  Token *token1 = lexer_get_next_token(lexer);
-  test_token(token1, TOKEN_KIND_COMMA, ",");
-  token_free(token1);
-
-  Token *token2 = lexer_get_next_token(lexer);
-  test_token(token2, TOKEN_KIND_PERIOD, ".");
-  token_free(token2);
-
-  Token *token3 = lexer_get_next_token(lexer);
-  test_token(token3, TOKEN_KIND_SEMICOLON, ";");
-  token_free(token3);
-
-  Token *token4 = lexer_get_next_token(lexer);
-  test_token(token4, TOKEN_KIND_COLON, ":");
-  token_free(token4);
-
-  Token *token5 = lexer_get_next_token(lexer);
-  test_token(token5, TOKEN_KIND_EOF, "eof");
-  token_free(token5);
-
-  lexer_free(lexer);
-  _print_end_section("delimiters");
+  char *input = ", . ; :";
+  struct TokenTest token_tests[] = {
+      {TOKEN_KIND_COMMA, ","},     {TOKEN_KIND_PERIOD, "."},
+      {TOKEN_KIND_SEMICOLON, ";"}, {TOKEN_KIND_COLON, ":"},
+      {TOKEN_KIND_EOF, "eof"},
+  };
+  test_tokens("delimiters", input, token_tests,
+              sizeof(token_tests) / sizeof(token_tests[0]));
 }
 
 void test_lexer_let() {
-  _print_start_section("let");
-  char *valid_input = "let var: int = 234;";
-  Lexer *lexer = lexer_new(valid_input);
+  char *input = "let var: int = 234;";
+  struct TokenTest token_tests[] = {
+      {TOKEN_KIND_LET, "let"},     {TOKEN_KIND_IDENT, "var"},
+      {TOKEN_KIND_COLON, ":"},     {TOKEN_KIND_VAL_TYPE_INT, "int"},
+      {TOKEN_KIND_ASSIGN, "="},    {TOKEN_KIND_INT, "234"},
+      {TOKEN_KIND_SEMICOLON, ";"}, {TOKEN_KIND_EOF, "eof"},
+  };
+  test_tokens("let", input, token_tests,
+              sizeof(token_tests) / sizeof(token_tests[0]));
+}
 
-  Token *token1 = lexer_get_next_token(lexer);
-  test_token(token1, TOKEN_KIND_LET, "let");
-  token_free(token1);
+void test_lexer_fn() {
+  char *input = "fn add(a: int, b: int): int {return a + b;}";
+  struct TokenTest token_tests[] = {
+      {TOKEN_KIND_FUNCTION, "fn"},      {TOKEN_KIND_IDENT, "add"},
+      {TOKEN_KIND_L_PAREN, "("},        {TOKEN_KIND_IDENT, "a"},
+      {TOKEN_KIND_COLON, ":"},          {TOKEN_KIND_VAL_TYPE_INT, "int"},
+      {TOKEN_KIND_COMMA, ","},          {TOKEN_KIND_IDENT, "b"},
+      {TOKEN_KIND_COLON, ":"},          {TOKEN_KIND_VAL_TYPE_INT, "int"},
+      {TOKEN_KIND_R_PAREN, ")"},        {TOKEN_KIND_COLON, ":"},
+      {TOKEN_KIND_VAL_TYPE_INT, "int"}, {TOKEN_KIND_L_CURLY, "{"},
+      {TOKEN_KIND_RETURN, "return"},    {TOKEN_KIND_IDENT, "a"},
+      {TOKEN_KIND_PLUS, "+"},           {TOKEN_KIND_IDENT, "b"},
+      {TOKEN_KIND_SEMICOLON, ";"},      {TOKEN_KIND_R_CURLY, "}"},
+      {TOKEN_KIND_EOF, "eof"}};
+  test_tokens("fn", input, token_tests,
+              sizeof(token_tests) / sizeof(token_tests[0]));
+}
 
-  Token *token2 = lexer_get_next_token(lexer);
-  test_token(token2, TOKEN_KIND_IDENT, "var");
-  token_free(token2);
+static void _print_start_section(char *section) {
+  if (SHOULD_WITH_PRINT) {
+    printf("START TESTING: %s \n", section);
+  }
+}
 
-  Token *token3 = lexer_get_next_token(lexer);
-  test_token(token3, TOKEN_KIND_COLON, ":");
-  token_free(token3);
-
-  Token *token4 = lexer_get_next_token(lexer);
-  test_token(token4, TOKEN_KIND_VAL_TYPE_INT, "int");
-  token_free(token4);
-
-  Token *token5 = lexer_get_next_token(lexer);
-  test_token(token5, TOKEN_KIND_ASSIGN, "=");
-  token_free(token5);
-
-  Token *token6 = lexer_get_next_token(lexer);
-  test_token(token6, TOKEN_KIND_INT, "234");
-  token_free(token6);
-
-  Token *token7 = lexer_get_next_token(lexer);
-  test_token(token7, TOKEN_KIND_SEMICOLON, ";");
-  token_free(token7);
-
-  Token *token8 = lexer_get_next_token(lexer);
-  test_token(token8, TOKEN_KIND_EOF, "eof");
-  token_free(token8);
-
-  _print_end_section("let");
+static void _print_end_section(char *section) {
+  if (SHOULD_WITH_PRINT) {
+    printf("END TESTING: %s \n", section);
+  }
 }

@@ -14,7 +14,7 @@ static char *read_int(Lexer *lexer);
 static char *read_ident(Lexer *lexer);
 static TokenKind get_token_kind_from_literal(const char *literal, size_t len);
 
-static uint8_t is_aplha(char ch);
+static uint8_t is_alpha(char ch);
 static char *str_slice(char *src, size_t start, size_t end);
 
 Lexer *lexer_new(char *input) {
@@ -135,7 +135,7 @@ Token *lexer_get_next_token(Lexer *lexer) {
     break;
   }
 
-  if (is_aplha(lexer->ch)) {
+  if (is_alpha(lexer->ch)) {
     char *ident_literal = read_ident(lexer);
     size_t len = strlen(ident_literal);
     TokenKind kind = get_token_kind_from_literal(ident_literal, len);
@@ -220,7 +220,7 @@ static char *read_ident(Lexer *lexer) {
 
   read_char(lexer);
 
-  while (is_aplha(lexer->ch)) {
+  while (is_alpha(lexer->ch)) {
     read_char(lexer);
   }
 
@@ -229,7 +229,7 @@ static char *read_ident(Lexer *lexer) {
   return str_slice(lexer->input, start, end);
 }
 
-static uint8_t is_aplha(char ch) {
+static uint8_t is_alpha(char ch) {
   return ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_');
 }
 
@@ -252,6 +252,8 @@ static TokenKind get_token_kind_from_literal(const char *literal, size_t len) {
     return TOKEN_KIND_LET;
   } else if (strncmp(literal, "return", len) == 0) {
     return TOKEN_KIND_RETURN;
+  } else if (strncmp(literal, "fn", len) == 0) {
+    return TOKEN_KIND_FUNCTION;
   } else if (strncmp(literal, "const", len) == 0) {
     return TOKEN_KIND_CONST;
   } else if (strncmp(literal, "use", len) == 0) {
@@ -264,7 +266,9 @@ static TokenKind get_token_kind_from_literal(const char *literal, size_t len) {
     return TOKEN_KIND_VAL_TYPE_INT;
   } else if (strncmp(literal, "string", len) == 0) {
     return TOKEN_KIND_VAL_TYPE_STRING;
-  } else if (strncmp(literal, "bool", len) == 0) {
+  } else if (strcmp(literal, "bool") ==
+             0) { // TODO why strncmp doesnt work here, it treats "b" as "bool"
+                  // and so on
     return TOKEN_KIND_VAL_TYPE_BOOL;
   }
 

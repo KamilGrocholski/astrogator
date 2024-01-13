@@ -1,7 +1,7 @@
 bin_dir = bin
 
 source_files_main = src/main.c
-source_files = src/compiler/lexer.c src/compiler/parser.c src/compiler/program.c
+source_files = src/lexer.c src/parser.c src/node.c
 output_binary = $(bin_dir)/astrogator
 
 source_test_files_main = test/main.test.c
@@ -11,7 +11,7 @@ output_test_binary = $(bin_dir)/test
 build:
 	mkdir -p $(bin_dir)
 	gcc $(source_files_main) $(source_files) -o ./$(output_binary)
-	./$(output_binary) -h
+	./$(output_binary) -h in.astrogator
 
 run_tests: 
 	mkdir -p $(bin_dir)

@@ -1,0 +1,26 @@
+fn add(a, b) {
+  let out = 123;
+
+  return out;
+}
+
+let a = "okej";
+let b = 12;
+
+let arr = [123, "okej"];
+
+fn remove(user) {
+  return "ok";
+}
+
+fn fibo(n, memo) {
+  return [fibo(n, memo)];
+}
+
+fibo()
+
+fn ok() {
+  return true;
+}
+
+ok()

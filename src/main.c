@@ -1,70 +1,54 @@
-/* #include "compiler/ast/ast.h" */
-#include "compiler/lexer.h"
-#include "compiler/parser.h"
-/* #include <stdio.h> */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-/* int partition(int numbers[], size_t len, size_t left, size_t right) { */
-/*   int pivot = numbers[(left + right) / 2]; */
-/*   int low = left; */
-/*   int high = right; */
-
-/*   while (low <= high) { */
-/*     while (numbers[low] < pivot) { */
-/*       low++; */
-/*     } */
-
-/*     while (numbers[high] > pivot) { */
-/*       high--; */
-/*     } */
-
-/*     if (low <= high) { */
-/*       int temp = numbers[low]; */
-/*       numbers[low] = numbers[high]; */
-/*       numbers[high] = temp; */
-/*       low++; */
-/*       high--; */
-/*     } */
-/*   } */
-
-/*   return low; */
-/* } */
-
-/* void quick_sort(int numbers[], size_t len, size_t left, size_t right) { */
-/*   int pivot_idx; */
-
-/*   if (len > 1) { */
-/*     pivot_idx = partition(numbers, len, left, right); */
-
-/*     if (left < pivot_idx - 1) { */
-/*       quick_sort(numbers, len, left, pivot_idx - 1); */
-/*     } */
-
-/*     if (pivot_idx < right) { */
-/*       quick_sort(numbers, len, pivot_idx, right); */
-/*     } */
-/*   } */
-/* } */
-
-/* #define ARRAY_LEN(arr) sizeof(arr) / sizeof(arr[0]) */
+#include "lexer.h"
+#include "parser.h"
 
 int main() {
-  /* int nums[] = {5, 1, 4, 3, 6, 2}; */
-  /* size_t len = ARRAY_LEN(nums); */
-  /* quick_sort(nums, len, 0, len - 1); */
+  char *file_name = "index.ag";
+  size_t len = strlen(file_name);
 
-  /* printf("["); */
-  /* for (size_t i = 0; i < len; i++) { */
-  /*   printf("%d,", nums[i]); */
-  /* } */
-  /* printf("]"); */
+  FILE *file = fopen(file_name, "r");
+  if (file == NULL) {
+    perror("Err opening file");
+    exit(EXIT_FAILURE);
+  }
 
-  char *input =
-      "let some_number: int = 2; let w: int = 3; let name: string = "
-      "\"jakis string\"; let is_ok: bool = true; let is_ok: bool = false;";
-  Lexer *lexer = lexer_new(input);
+  fseek(file, 0, SEEK_END);
+  size_t file_size = ftell(file);
+  fseek(file, 0, SEEK_SET);
 
-  Parser *parser = parser_new(lexer);
-  parser_parse_program(parser);
+  char *input = (char *)malloc(file_size + 1);
+  if (input == NULL) {
+    perror("Mem alloc err");
+    fclose(file);
+    exit(EXIT_FAILURE);
+  }
+
+  fread(input, 1, file_size, file);
+  input[file_size] = '\0';
+
+  fclose(file);
+
+  Lexer lexer;
+  lexer_init(&lexer, input, file_size);
+  Parser *parser = parser_new(&lexer);
+  Program *program = program_new();
+
+  while (parser->curr_token.kind != TOKEN_EOF &&
+         parser->curr_token.kind != TOKEN_ILLEGAL) {
+    Stmt *stmt = parser_parse_stmt(parser);
+    if (stmt != NULL) {
+      stmt_print(stmt);
+      program_append(program, stmt);
+    } else {
+      printf("null stmt in program\n");
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  free(input);
 
   return 0;
 }

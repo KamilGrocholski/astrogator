@@ -14,9 +14,11 @@ typedef enum {
   STMT_EXP,
   STMT_BLOCK,
   STMT_RETURN,
+  STMT_IF_ELSE,
 } StmtKind;
 
 typedef enum {
+  EXP_INFIX,
   EXP_NUMBER,
   EXP_IDENT,
   EXP_STRING,
@@ -25,6 +27,8 @@ typedef enum {
   EXP_FN,
   EXP_CALL,
   EXP_BOOL,
+  EXP_NIL,
+  /* EXP_LOOP, */
 } ExpKind;
 
 typedef struct Stmt {
@@ -46,6 +50,12 @@ typedef struct Stmt {
     struct {
       Exp *value;
     } ret;
+
+    struct {
+      Exp *condition;
+      Stmt *consequence;
+      Stmt *alternative; // optional 'else' or 'else if'
+    } if_else;
   } data;
 } Stmt;
 
@@ -72,13 +82,26 @@ typedef struct Exp {
       char *name;
       Exp *params;
       Stmt *body;
-      Exp *ret;
     } fn;
 
     struct {
       char *name;
       Exp *args;
     } call;
+
+    struct {
+      TokenKind op;
+      Exp *left;
+      Exp *right;
+    } infix;
+
+    /* struct { */
+    /*   size_t index; // optional */
+    /*   Exp *init; */
+    /*   Exp *condition; */
+    /*   Exp *post; // optional */
+    /*   Stmt *body; */
+    /* } loop; */
   } data;
 } Exp;
 
@@ -88,6 +111,7 @@ Stmt *stmt_new();
 Stmt *stmt_let_new(char *name, Exp *value);
 Stmt *stmt_ret_new(Exp *value);
 Stmt *stmt_exp_new(Exp *exp);
+Stmt *stmt_if_else_new(Exp *condition, Stmt *consequence, Stmt *alternative);
 Stmt *stmt_block_new();
 void stmt_block_append(Stmt *block, Stmt *inner_stmt);
 
@@ -97,8 +121,11 @@ Exp *exp_new();
 Exp *exp_ident_new(char *ident);
 Exp *exp_string_new(char *string);
 Exp *exp_number_new(double value);
-Exp *exp_fn_new(char *name, Exp *params, Stmt *body, Exp *ret);
+Exp *exp_fn_new(char *name, Exp *params, Stmt *body);
 Exp *exp_call_new(char *name, Exp *args);
+Exp *exp_infix_new(TokenKind op, Exp *left, Exp *right);
+/* Exp *exp_loop_new(Exp *condition); */
+Exp *exp_nil_new();
 Exp *exp_bool_new(bool boolean);
 Exp *exp_array_new(Exp *list);
 Exp *exp_list_new();

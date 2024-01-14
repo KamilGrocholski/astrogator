@@ -15,10 +15,47 @@ static void read_int(Lexer *lexer, Token *token);
 static void read_ident(Lexer *lexer, Token *token);
 static TokenKind get_ident_kind_by_literal(char *literal);
 
+bool token_is_operator(TokenKind kind) {
+  switch (kind) {
+  case TOKEN_PLUS:
+  case TOKEN_MINUS:
+  case TOKEN_ASTERISK:
+  case TOKEN_SLASH:
+  case TOKEN_EQUAL:
+  case TOKEN_NOT_EQUAL:
+  case TOKEN_PERCENT:
+    return true;
+  default:
+    return false;
+  }
+}
+
+size_t token_get_precedence(TokenKind kind) {
+  switch (kind) {
+  case TOKEN_PLUS:
+  case TOKEN_MINUS:
+    return 1;
+  case TOKEN_ASTERISK:
+  case TOKEN_SLASH:
+    return 2;
+  case TOKEN_PERCENT:
+    return 3;
+  case TOKEN_EQUAL:
+  case TOKEN_NOT_EQUAL:
+    return 4;
+  default:
+    return 0;
+  }
+}
+
 char *token_kind_to_str(TokenKind kind) {
   switch (kind) {
   case TOKEN_LET:
     return "LET";
+  case TOKEN_DOT:
+    return "DOT";
+  case TOKEN_DOUBLE_DOT:
+    return "DOUBLE_DOT";
   case TOKEN_INT:
     return "INT";
   case TOKEN_LPAREN:
@@ -37,6 +74,14 @@ char *token_kind_to_str(TokenKind kind) {
     return "STRING";
   case TOKEN_PLUS:
     return "PLUS";
+  case TOKEN_MINUS:
+    return "MINUS";
+  case TOKEN_ASTERISK:
+    return "ASTERISK";
+  case TOKEN_SLASH:
+    return "SLASH";
+  case TOKEN_PERCENT:
+    return "PERCENT";
   case TOKEN_ERROR:
     return "ERROR";
   case TOKEN_IDENT:
@@ -47,6 +92,12 @@ char *token_kind_to_str(TokenKind kind) {
     return "SEMICOLON";
   case TOKEN_ASSIGN:
     return "ASSIGN";
+  case TOKEN_EQUAL:
+    return "EQUAL";
+  case TOKEN_NOT_EQUAL:
+    return "NOT_EQUAL";
+  case TOKEN_BANG:
+    return "BANG";
   case TOKEN_COMMA:
     return "COMMA";
   case TOKEN_FN:
@@ -59,6 +110,16 @@ char *token_kind_to_str(TokenKind kind) {
     return "FALSE";
   case TOKEN_NIL:
     return "NIL";
+  case TOKEN_FOR:
+    return "FOR";
+  case TOKEN_RANGE:
+    return "RANGE";
+  case TOKEN_IN:
+    return "IN";
+  case TOKEN_IF:
+    return "IF";
+  case TOKEN_ELSE:
+    return "ELSE";
   case TOKEN_EOF:
     return "EOF";
   }
@@ -88,18 +149,63 @@ void lexer_get_next_token(Lexer *lexer, Token *token) {
   case '"':
     read_string(lexer, token);
     return;
-  case '=':
-    token->kind = TOKEN_ASSIGN;
+  case '%':
+    token->kind = TOKEN_PERCENT;
     token->literal = NULL;
     next_ch(lexer);
+    return;
+  case '=':
+    token->literal = NULL;
+    next_ch(lexer);
+    if (lexer->ch == '=') {
+      token->kind = TOKEN_EQUAL;
+      next_ch(lexer);
+      return;
+    }
+    token->kind = TOKEN_ASSIGN;
+    return;
+  case '!':
+    token->literal = NULL;
+    next_ch(lexer);
+    if (lexer->ch == '=') {
+      next_ch(lexer);
+      token->kind = TOKEN_NOT_EQUAL;
+      return;
+    }
+    token->kind = TOKEN_BANG;
     return;
   case ';':
     token->kind = TOKEN_SEMICOLON;
     token->literal = NULL;
     next_ch(lexer);
     return;
+  case '.':
+    token->literal = NULL;
+    next_ch(lexer);
+    if (lexer->ch == '.') {
+      token->kind = TOKEN_DOUBLE_DOT;
+      next_ch(lexer);
+      return;
+    }
+    token->kind = TOKEN_DOT;
+    return;
   case '+':
     token->kind = TOKEN_PLUS;
+    token->literal = NULL;
+    next_ch(lexer);
+    return;
+  case '-':
+    token->kind = TOKEN_MINUS;
+    token->literal = NULL;
+    next_ch(lexer);
+    return;
+  case '*':
+    token->kind = TOKEN_ASTERISK;
+    token->literal = NULL;
+    next_ch(lexer);
+    return;
+  case '/':
+    token->kind = TOKEN_SLASH;
     token->literal = NULL;
     next_ch(lexer);
     return;
@@ -232,6 +338,16 @@ static TokenKind get_ident_kind_by_literal(char *literal) {
     return TOKEN_FALSE;
   } else if (strcmp(literal, "nil") == 0) {
     return TOKEN_NIL;
+  } else if (strcmp(literal, "for") == 0) {
+    return TOKEN_FOR;
+  } else if (strcmp(literal, "range") == 0) {
+    return TOKEN_RANGE;
+  } else if (strcmp(literal, "in") == 0) {
+    return TOKEN_IN;
+  } else if (strcmp(literal, "if") == 0) {
+    return TOKEN_IF;
+  } else if (strcmp(literal, "else") == 0) {
+    return TOKEN_ELSE;
   } else {
     return TOKEN_IDENT;
   }

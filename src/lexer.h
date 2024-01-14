@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 
 #ifndef _LEXER_H
@@ -5,6 +6,8 @@
 
 typedef enum {
   TOKEN_EOF = 1,
+  TOKEN_DOT,
+  TOKEN_DOUBLE_DOT,
   TOKEN_IDENT,
   TOKEN_INT,
   TOKEN_STRING,
@@ -16,6 +19,13 @@ typedef enum {
   TOKEN_RBRACKET,
   TOKEN_COMMA,
   TOKEN_PLUS,
+  TOKEN_MINUS,
+  TOKEN_ASTERISK,
+  TOKEN_SLASH,
+  TOKEN_PERCENT,
+  TOKEN_EQUAL,
+  TOKEN_NOT_EQUAL,
+  TOKEN_BANG,
   TOKEN_LET,
   TOKEN_ILLEGAL,
   TOKEN_SEMICOLON,
@@ -26,6 +36,11 @@ typedef enum {
   TOKEN_TRUE,
   TOKEN_FALSE,
   TOKEN_NIL,
+  TOKEN_FOR,
+  TOKEN_RANGE,
+  TOKEN_IN,
+  TOKEN_IF,
+  TOKEN_ELSE,
 } TokenKind;
 
 typedef struct {
@@ -44,5 +59,7 @@ typedef struct {
 void lexer_init(Lexer *lexer, char *input, size_t input_len);
 void lexer_get_next_token(Lexer *lexer, Token *token);
 char *token_kind_to_str(TokenKind kind);
+bool token_is_operator(TokenKind kind);
+size_t token_get_precedence(TokenKind kind);
 
 #endif // !_LEXER_H

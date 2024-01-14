@@ -9,15 +9,19 @@
 Stmt *parse_stmt_let(Parser *parser);
 Stmt *parse_stmt_exp(Parser *parser);
 Stmt *parse_stmt_block(Parser *parser);
+Stmt *parse_stmt_if_else(Parser *parser);
 Stmt *parse_stmt_return(Parser *parser);
 
 Exp *parse_exp(Parser *parser);
+Exp *parse_exp_normal(Parser *parser);
+Exp *parse_exp_infix(Parser *parser, size_t precedence, Exp *left);
 Exp *parse_exp_number(Parser *parser);
 Exp *parse_exp_string(Parser *parser);
 Exp *parse_exp_ident(Parser *parser);
 Exp *parse_exp_fn(Parser *parser);
 Exp *parse_exp_call(Parser *parser);
 Exp *parse_exp_bool(Parser *parser);
+Exp *parse_exp_nil(Parser *parser);
 Exp *parse_exp_array(Parser *parser);
 Exp *parse_exp_list(Parser *parser, TokenKind closing_token_kind);
 
@@ -30,6 +34,8 @@ Stmt *parser_parse_stmt(Parser *parser) {
     return parse_stmt_let(parser);
   case TOKEN_RETURN:
     return parse_stmt_return(parser);
+  case TOKEN_IF:
+    return parse_stmt_if_else(parser);
   default:
     return parse_stmt_exp(parser);
   }
@@ -63,18 +69,8 @@ void consume(Parser *parser, TokenKind expected_kind) {
   }
 }
 
-void expect_curr(Parser *parser, TokenKind kind) {
-  if (parser->curr_token.kind != kind) {
-    printf("Parse expect_curr error: expected %s, got %s\n",
-           token_kind_to_str(kind), token_kind_to_str(parser->curr_token.kind));
-    exit(1);
-  }
-};
-
 Stmt *parse_stmt_let(Parser *parser) {
   consume(parser, TOKEN_LET);
-
-  expect_curr(parser, TOKEN_IDENT);
   char *name = parser->curr_token.literal;
   consume(parser, TOKEN_IDENT);
   consume(parser, TOKEN_ASSIGN);
@@ -82,8 +78,26 @@ Stmt *parse_stmt_let(Parser *parser) {
   consume(parser, TOKEN_SEMICOLON);
 
   Stmt *stmt = stmt_let_new(name, value);
-
   return stmt;
+}
+
+Stmt *parse_stmt_if_else(Parser *parser) {
+  consume(parser, TOKEN_IF);
+  Exp *condition = parse_exp(parser);
+  Stmt *consequence = parse_stmt_block(parser);
+  Stmt *alternative = NULL;
+
+  if (parser->curr_token.kind == TOKEN_ELSE) {
+    consume(parser, TOKEN_ELSE);
+    if (parser->curr_token.kind == TOKEN_IF) {
+      alternative = parse_stmt_if_else(parser);
+    } else {
+      alternative = parse_stmt_block(parser);
+    }
+  }
+
+  Stmt *if_else = stmt_if_else_new(condition, consequence, alternative);
+  return if_else;
 }
 
 Stmt *parse_stmt_return(Parser *parser) {
@@ -91,7 +105,6 @@ Stmt *parse_stmt_return(Parser *parser) {
   Exp *value = parse_exp(parser);
   consume(parser, TOKEN_SEMICOLON);
   Stmt *ret = stmt_ret_new(value);
-
   return ret;
 }
 
@@ -119,30 +132,57 @@ Stmt *parse_stmt_exp(Parser *parser) {
 }
 
 Exp *parse_exp(Parser *parser) {
-  while (parser->curr_token.kind != TOKEN_SEMICOLON) {
-    switch (parser->curr_token.kind) {
-    case TOKEN_INT:
-      return parse_exp_number(parser);
-    case TOKEN_IDENT:
-      if (parser->next_token.kind == TOKEN_LPAREN) {
-        return parse_exp_call(parser);
-      }
-      return parse_exp_ident(parser);
-    case TOKEN_STRING:
-      return parse_exp_string(parser);
-    case TOKEN_LBRACKET:
-      return parse_exp_array(parser);
-    case TOKEN_FN:
-      return parse_exp_fn(parser);
-    case TOKEN_TRUE:
-    case TOKEN_FALSE:
-      return parse_exp_bool(parser);
-    }
-  }
+  return parse_exp_infix(parser, 0, parse_exp_normal(parser));
 
   printf("unhandled token kind in parse_exp %s\n",
          token_kind_to_str(parser->curr_token.kind));
   exit(1);
+}
+
+Exp *parse_exp_infix(Parser *parser, size_t precedence, Exp *left) {
+  while (token_is_operator(parser->curr_token.kind) &&
+         precedence < token_get_precedence(parser->curr_token.kind)) {
+    TokenKind op_kind = parser->curr_token.kind;
+    consume(parser, op_kind);
+
+    Exp *right = parse_exp_normal(parser);
+    while (token_is_operator(parser->curr_token.kind) &&
+           precedence < token_get_precedence(parser->curr_token.kind)) {
+      right = parse_exp_infix(
+          parser, token_get_precedence(parser->curr_token.kind), right);
+    }
+
+    left = exp_infix_new(op_kind, left, right);
+  }
+
+  return left;
+}
+
+Exp *parse_exp_normal(Parser *parser) {
+  switch (parser->curr_token.kind) {
+  case TOKEN_INT:
+    return parse_exp_number(parser);
+  case TOKEN_IDENT:
+    if (parser->next_token.kind == TOKEN_LPAREN) {
+      return parse_exp_call(parser);
+    }
+    return parse_exp_ident(parser);
+  case TOKEN_STRING:
+    return parse_exp_string(parser);
+  case TOKEN_LBRACKET:
+    return parse_exp_array(parser);
+  case TOKEN_FN:
+    return parse_exp_fn(parser);
+  case TOKEN_TRUE:
+  case TOKEN_FALSE:
+    return parse_exp_bool(parser);
+  case TOKEN_NIL:
+    return parse_exp_nil(parser);
+  default:
+    printf("unhandled token kind in normal exp %s\n",
+           token_kind_to_str(parser->next_token.kind));
+    exit(1);
+  }
 }
 
 Exp *parse_exp_number(Parser *parser) {
@@ -204,9 +244,8 @@ Exp *parse_exp_fn(Parser *parser) {
   Exp *params = parse_exp_list(parser, TOKEN_RPAREN);
   consume(parser, TOKEN_RPAREN);
   Stmt *body = parse_stmt_block(parser);
-  Exp *ret = exp_new();
 
-  Exp *fn = exp_fn_new(name, params, body, NULL);
+  Exp *fn = exp_fn_new(name, params, body);
   return fn;
 }
 
@@ -228,4 +267,9 @@ Exp *parse_exp_bool(Parser *parser) {
     consume(parser, TOKEN_FALSE);
     return exp_bool_new(false);
   }
+}
+
+Exp *parse_exp_nil(Parser *parser) {
+  consume(parser, TOKEN_NIL);
+  return exp_nil_new();
 }

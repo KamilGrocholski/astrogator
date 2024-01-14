@@ -63,6 +63,9 @@ void stmt_print(Stmt *stmt) {
     }
     printf("}\n");
     break;
+  case STMT_IF_ELSE:
+    printf("if else\n");
+    break;
   }
 }
 
@@ -76,6 +79,8 @@ char *stmt_kind_to_str(StmtKind kind) {
     return "EXP";
   case STMT_BLOCK:
     return "BLOCK";
+  case STMT_IF_ELSE:
+    return "IFELSE";
   }
   printf("stmt_kind_to_str unknown stmt kind %d\n", kind);
   exit(1);
@@ -128,6 +133,16 @@ Stmt *stmt_block_new() {
     exit(1);
   }
   return block;
+}
+
+Stmt *stmt_if_else_new(Exp *condition, Stmt *consequence, Stmt *alternative) {
+  Stmt *if_else = stmt_new();
+  if_else->kind = STMT_IF_ELSE;
+  if_else->data.if_else.condition = condition;
+  if_else->data.if_else.consequence = consequence;
+  if_else->data.if_else.alternative = alternative;
+
+  return if_else;
 }
 
 void stmt_block_append(Stmt *block, Stmt *inner_stmt) {
@@ -190,6 +205,15 @@ void exp_print(Exp *exp) {
   case EXP_BOOL:
     printf("%s", exp->data.boolean ? "TRUE" : "FALSE");
     break;
+  /* case EXP_LOOP: */
+  /*   printf("for \n"); */
+  /*   break; */
+  case EXP_INFIX:
+    printf("infix\n");
+    break;
+  case EXP_NIL:
+    printf("NIL");
+    break;
   }
 }
 
@@ -211,6 +235,12 @@ char *exp_kind_to_str(ExpKind kind) {
     return "CALL";
   case EXP_BOOL:
     return "BOOL";
+  case EXP_NIL:
+    return "NIL";
+  case EXP_INFIX:
+    return "INFIX";
+    /* case EXP_LOOP: */
+    /*   return "LOOP"; */
   }
   printf("exp_kind_to_str unknown exp kind %d\n", kind);
   exit(1);
@@ -242,13 +272,12 @@ Exp *exp_number_new(double value) {
   return exp;
 }
 
-Exp *exp_fn_new(char *name, Exp *params, Stmt *body, Exp *ret) {
+Exp *exp_fn_new(char *name, Exp *params, Stmt *body) {
   Exp *exp = exp_new();
   exp->kind = EXP_FN;
   exp->data.fn.name = name;
   exp->data.fn.params = params;
   exp->data.fn.body = body;
-  exp->data.fn.ret = ret;
   return exp;
 }
 
@@ -267,12 +296,30 @@ Exp *exp_bool_new(bool boolean) {
   return exp;
 }
 
+Exp *exp_nil_new() {
+  Exp *exp = exp_new();
+  exp->kind = EXP_NIL;
+  return exp;
+}
+
+Exp *exp_infix_new(TokenKind op, Exp *left, Exp *right) {
+  Exp *exp = exp_new();
+  exp->kind = EXP_INFIX;
+  exp->data.infix.op = op;
+  exp->data.infix.left = left;
+  exp->data.infix.right = right;
+  return exp;
+}
+
 Exp *exp_array_new(Exp *list) {
   Exp *exp = exp_new();
   exp->kind = EXP_ARRAY;
   exp->data.array.list = list;
   return exp;
 }
+
+/* Exp *exp_loop_new() { */
+/* } */
 
 Exp *exp_list_new() {
   Exp *exp = exp_new();

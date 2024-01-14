@@ -23,4 +23,28 @@ fn ok() {
   return true;
 }
 
+fn n() {
+  return nil;
+}
+
+let a = 1 + 1;
+let a = 1 - 1;
+let a = 1 / 1;
+let a = 1 * 2;
+let a = 1 % 2;
+
+fn n() {
+  return false;
+}
+
+let a = 1 != 2;
+let a = 1 == 2;
+
+fn validate(user) {
+  if true {
+  } else if false {
+  } else {
+  }
+}
+
 ok()

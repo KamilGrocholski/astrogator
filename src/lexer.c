@@ -52,6 +52,8 @@ char *token_kind_to_str(TokenKind kind) {
   switch (kind) {
   case TOKEN_LET:
     return "LET";
+  case TOKEN_CONST:
+    return "CONST";
   case TOKEN_DOT:
     return "DOT";
   case TOKEN_DOUBLE_DOT:
@@ -328,6 +330,8 @@ static bool is_alpha(char ch) {
 static TokenKind get_ident_kind_by_literal(char *literal) {
   if (strcmp(literal, "let") == 0) {
     return TOKEN_LET;
+  } else if (strcmp(literal, "const") == 0) {
+    return TOKEN_CONST;
   } else if (strcmp(literal, "return") == 0) {
     return TOKEN_RETURN;
   } else if (strcmp(literal, "fn") == 0) {

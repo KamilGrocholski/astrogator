@@ -52,6 +52,11 @@ void stmt_print(Stmt *stmt) {
            exp_kind_to_str(stmt->data.let.value->kind));
     exp_print(stmt->data.let.value);
     break;
+  case STMT_CONST:
+    printf("kind: %s, const %s = %s;\n", kind_str, stmt->data.constant.name,
+           exp_kind_to_str(stmt->data.constant.value->kind));
+    exp_print(stmt->data.constant.value);
+    break;
   case STMT_RETURN:
     printf("return ");
     exp_print(stmt->data.ret.value);
@@ -66,6 +71,10 @@ void stmt_print(Stmt *stmt) {
   case STMT_IF_ELSE:
     printf("if else\n");
     break;
+  case STMT_REASSIGN:
+    printf("%s = ", stmt->data.reassign.name);
+    exp_print(stmt->data.reassign.value);
+    break;
   }
 }
 
@@ -73,6 +82,10 @@ char *stmt_kind_to_str(StmtKind kind) {
   switch (kind) {
   case STMT_LET:
     return "LET";
+  case STMT_CONST:
+    return "CONST";
+  case STMT_REASSIGN:
+    return "REASSIGN";
   case STMT_RETURN:
     return "RETURN";
   case STMT_EXP:
@@ -100,6 +113,14 @@ Stmt *stmt_let_new(char *name, Exp *value) {
   stmt->kind = STMT_LET;
   stmt->data.let.name = name;
   stmt->data.let.value = value;
+  return stmt;
+}
+
+Stmt *stmt_const_new(char *name, Exp *value) {
+  Stmt *stmt = stmt_new();
+  stmt->kind = STMT_CONST;
+  stmt->data.constant.name = name;
+  stmt->data.constant.value = value;
   return stmt;
 }
 
@@ -143,6 +164,14 @@ Stmt *stmt_if_else_new(Exp *condition, Stmt *consequence, Stmt *alternative) {
   if_else->data.if_else.alternative = alternative;
 
   return if_else;
+}
+
+Stmt *stmt_reassign_new(char *name, Exp *value) {
+  Stmt *reassign = stmt_new();
+  reassign->kind = STMT_REASSIGN;
+  reassign->data.reassign.name = name;
+  reassign->data.reassign.value = value;
+  return reassign;
 }
 
 void stmt_block_append(Stmt *block, Stmt *inner_stmt) {

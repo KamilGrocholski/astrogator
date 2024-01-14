@@ -1,3 +1,9 @@
+const A = "OKEJ";
+a = 3;
+a = "ok";
+a = add(ok);
+a = [1234,"ok"];
+
 fn add(a, b) {
   let out = 123;
 
@@ -24,6 +30,10 @@ fn ok() {
 }
 
 fn n() {
+  a = 2;
+  if a == 3 {
+    a = nil;
+  }
   return nil;
 }
 
@@ -47,4 +57,9 @@ fn validate(user) {
   }
 }
 
-ok()
+ok();
+
+let ids = [1,2,3,11,143,21];
+
+const NAMES = ["OKEJ"];
+ids = [];

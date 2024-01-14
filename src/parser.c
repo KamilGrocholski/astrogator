@@ -7,6 +7,8 @@
 #include "parser.h"
 
 Stmt *parse_stmt_let(Parser *parser);
+Stmt *parse_stmt_const(Parser *parser);
+Stmt *parse_stmt_reassign(Parser *parser);
 Stmt *parse_stmt_exp(Parser *parser);
 Stmt *parse_stmt_block(Parser *parser);
 Stmt *parse_stmt_if_else(Parser *parser);
@@ -32,11 +34,17 @@ Stmt *parser_parse_stmt(Parser *parser) {
   switch (parser->curr_token.kind) {
   case TOKEN_LET:
     return parse_stmt_let(parser);
+  case TOKEN_CONST:
+    return parse_stmt_const(parser);
   case TOKEN_RETURN:
     return parse_stmt_return(parser);
   case TOKEN_IF:
     return parse_stmt_if_else(parser);
   default:
+    if (parser->curr_token.kind == TOKEN_IDENT &&
+        parser->next_token.kind == TOKEN_ASSIGN) {
+      return parse_stmt_reassign(parser);
+    }
     return parse_stmt_exp(parser);
   }
 }
@@ -79,6 +87,28 @@ Stmt *parse_stmt_let(Parser *parser) {
 
   Stmt *stmt = stmt_let_new(name, value);
   return stmt;
+}
+
+Stmt *parse_stmt_const(Parser *parser) {
+  consume(parser, TOKEN_CONST);
+  char *name = parser->curr_token.literal;
+  consume(parser, TOKEN_IDENT);
+  consume(parser, TOKEN_ASSIGN);
+  Exp *value = parse_exp(parser);
+  consume(parser, TOKEN_SEMICOLON);
+
+  Stmt *stmt = stmt_const_new(name, value);
+  return stmt;
+}
+
+Stmt *parse_stmt_reassign(Parser *parser) {
+  char *name = parser->curr_token.literal;
+  consume(parser, TOKEN_IDENT);
+  consume(parser, TOKEN_ASSIGN);
+  Exp *value = parse_exp(parser);
+  consume(parser, TOKEN_SEMICOLON);
+  Stmt *reassign = stmt_reassign_new(name, value);
+  return reassign;
 }
 
 Stmt *parse_stmt_if_else(Parser *parser) {

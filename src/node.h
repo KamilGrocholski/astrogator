@@ -11,10 +11,12 @@ typedef struct Stmt Stmt;
 
 typedef enum {
   STMT_LET,
+  STMT_CONST,
   STMT_EXP,
   STMT_BLOCK,
   STMT_RETURN,
   STMT_IF_ELSE,
+  STMT_REASSIGN,
 } StmtKind;
 
 typedef enum {
@@ -40,6 +42,16 @@ typedef struct Stmt {
       char *name;
       Exp *value;
     } let;
+
+    struct {
+      char *name;
+      Exp *value;
+    } constant;
+
+    struct {
+      char *name;
+      Exp *value;
+    } reassign;
 
     struct {
       Stmt **stmts;
@@ -109,7 +121,9 @@ void stmt_print(Stmt *stmt);
 char *stmt_kind_to_str(StmtKind kind);
 Stmt *stmt_new();
 Stmt *stmt_let_new(char *name, Exp *value);
+Stmt *stmt_const_new(char *name, Exp *value);
 Stmt *stmt_ret_new(Exp *value);
+Stmt *stmt_reassign_new(char *name, Exp *value);
 Stmt *stmt_exp_new(Exp *exp);
 Stmt *stmt_if_else_new(Exp *condition, Stmt *consequence, Stmt *alternative);
 Stmt *stmt_block_new();

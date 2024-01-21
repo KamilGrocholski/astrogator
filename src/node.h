@@ -10,7 +10,7 @@ typedef struct Exp Exp;
 typedef struct Stmt Stmt;
 
 typedef enum {
-  STMT_LET,
+  STMT_LET = 1,
   STMT_CONST,
   STMT_EXP,
   STMT_BLOCK,
@@ -20,7 +20,7 @@ typedef enum {
 } StmtKind;
 
 typedef enum {
-  EXP_INFIX,
+  EXP_INFIX = 1,
   EXP_NUMBER,
   EXP_IDENT,
   EXP_STRING,
@@ -35,7 +35,7 @@ typedef enum {
 
 typedef struct Stmt {
   StmtKind kind;
-  union {
+  union data {
     Exp *exp;
 
     struct {

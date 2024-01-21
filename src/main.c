@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "compiler.h"
 #include "lexer.h"
 #include "parser.h"
 
 int main() {
-  char *file_name = "index.ag";
+  /* char *file_name = "index.ag"; */
+  char *file_name = "tocomp.ag";
   size_t len = strlen(file_name);
 
   FILE *file = fopen(file_name, "r");
@@ -40,13 +42,17 @@ int main() {
          parser->curr_token.kind != TOKEN_ILLEGAL) {
     Stmt *stmt = parser_parse_stmt(parser);
     if (stmt != NULL) {
-      stmt_print(stmt);
+      /* stmt_print(stmt); */
       program_append(program, stmt);
     } else {
       printf("null stmt in program\n");
       exit(EXIT_FAILURE);
     }
   }
+
+  Compiler compiler;
+  compiler_init(&compiler);
+  compiler_compile(&compiler, program);
 
   free(input);
 

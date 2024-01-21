@@ -52,6 +52,10 @@ let a = 1 == 2;
 
 fn validate(user) {
   if true {
+    let b = a == 3;
+    if b == true {
+      return 1;
+    }
   } else if false {
   } else {
   }
@@ -63,3 +67,13 @@ let ids = [1,2,3,11,143,21];
 
 const NAMES = ["OKEJ"];
 ids = [];
+
+fn promise(res, rej) {
+  if res() {
+    return true;
+  } else if rej() {
+    return res();
+  } else {
+    return res();
+  }
+}

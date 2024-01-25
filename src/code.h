@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdint.h>
 
 #ifndef _CODE_H
@@ -5,6 +6,9 @@
 
 typedef enum {
   OP_CONST = 0,
+  OP_SUBTRACT,
+  OP_DIVIDE,
+  OP_MULTIPLY,
   OP_ADD,
 } OpCode;
 
@@ -18,7 +22,7 @@ const char *op_to_str(OpCode opcode);
 InstructionList *instructionlist_new();
 void instructionlist_append(InstructionList *instructionlist,
                             uint32_t instruction);
-uint32_t encode_instruction(OpCode opcode, ...);
+uint32_t encode_instruction(OpCode opcode, va_list args);
 OpCode read_opcode(uint32_t instruction);
 uint8_t read_8bits(uint32_t instruction, uint32_t offset);
 uint16_t read_16bits(uint32_t instruction, uint32_t offset);

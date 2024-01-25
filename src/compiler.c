@@ -52,12 +52,22 @@ void compile_exp(Compiler *compiler, Exp *exp) {
     case TOKEN_PLUS:
       emit(compiler, OP_ADD);
       break;
+    case TOKEN_MINUS:
+      emit(compiler, OP_SUBTRACT);
+      break;
+    case TOKEN_ASTERISK:
+      emit(compiler, OP_MULTIPLY);
+      break;
+    case TOKEN_SLASH:
+      emit(compiler, OP_DIVIDE);
+      break;
     }
   } break;
   case EXP_NUMBER: {
     Obj *obj = obj_number_new(exp->data.number);
+    uint32_t const_idx = compiler->constants->len;
     objlist_append(compiler->constants, obj);
-    emit(compiler, OP_CONST, compiler->constants->len - 1);
+    emit(compiler, OP_CONST, const_idx);
   } break;
   }
 }

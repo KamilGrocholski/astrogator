@@ -33,12 +33,15 @@ void vm_run(Vm *vm) {
 
     switch (opcode) {
     case OP_CONST: {
-      uint32_t const_idx = read_16bits(curr_instruction, 1);
+      uint32_t const_idx = read_16bits(curr_instruction, 0);
       printf("const idx: %d, ", const_idx);
       obj_print(&vm->constants->list[const_idx]);
       vm_stack_push(vm, &vm->constants->list[const_idx]);
     } break;
-    case OP_ADD: {
+    case OP_ADD:
+    case OP_SUBTRACT:
+    case OP_MULTIPLY:
+    case OP_DIVIDE: {
       vm_exec_binary(vm, opcode);
     } break;
     }
@@ -87,6 +90,21 @@ void vm_exec_binary_number(Vm *vm, OpCode opcode, Obj *left, Obj *right) {
   switch (opcode) {
   case OP_ADD:
     left->data.number += right->data.number;
+    break;
+  case OP_SUBTRACT:
+    left->data.number -= right->data.number;
+    break;
+  case OP_MULTIPLY:
+    left->data.number *= right->data.number;
+    break;
+  case OP_DIVIDE:
+    left->data.number /= right->data.number;
+    printf("CURR:");
+    obj_print(vm_stack_curr(vm));
+    break;
+  default:
+    printf("vm_exec_binary_number: invalid opcode %s\n", op_to_str(opcode));
+    exit(1);
     break;
   }
 }

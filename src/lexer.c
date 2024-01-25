@@ -15,6 +15,7 @@ static void read_int(Lexer *lexer, Token *token);
 static void read_ident(Lexer *lexer, Token *token);
 static TokenKind get_ident_kind_by_literal(char *literal);
 
+// TODO convert to array
 bool token_is_operator(TokenKind kind) {
   switch (kind) {
   case TOKEN_PLUS:
@@ -48,6 +49,7 @@ size_t token_get_precedence(TokenKind kind) {
   }
 }
 
+// TODO convert to array
 char *token_kind_to_str(TokenKind kind) {
   switch (kind) {
   case TOKEN_LET:

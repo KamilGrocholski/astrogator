@@ -5,6 +5,7 @@
 #include "compiler.h"
 #include "lexer.h"
 #include "parser.h"
+#include "vm.h"
 
 int main() {
   /* char *file_name = "index.ag"; */
@@ -42,7 +43,6 @@ int main() {
          parser->curr_token.kind != TOKEN_ILLEGAL) {
     Stmt *stmt = parser_parse_stmt(parser);
     if (stmt != NULL) {
-      /* stmt_print(stmt); */
       program_append(program, stmt);
     } else {
       printf("null stmt in program\n");
@@ -50,9 +50,10 @@ int main() {
     }
   }
 
-  Compiler compiler;
-  compiler_init(&compiler);
-  compiler_compile(&compiler, program);
+  Compiler *compiler = compiler_new();
+  compiler_compile(compiler, program);
+  Vm *vm = vm_new(compiler->instructions, compiler->constants);
+  vm_run(vm);
 
   free(input);
 

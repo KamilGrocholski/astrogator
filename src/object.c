@@ -10,6 +10,9 @@ void obj_print(Obj *obj) {
   case OBJ_NUMBER:
     printf("%f", obj->data.number);
     break;
+  case OBJ_BOOLEAN:
+    printf("%s", obj->data.boolean ? "true" : "false");
+    break;
   }
   printf("\n");
 }
@@ -87,5 +90,12 @@ Obj *obj_string_new(char *value, size_t len) {
   obj->kind = OBJ_STRING;
   obj->data.string.value = value;
   obj->data.string.len = len;
+  return obj;
+}
+
+Obj *obj_boolean_new(bool boolean) {
+  Obj *obj = obj_new();
+  obj->kind = OBJ_BOOLEAN;
+  obj->data.boolean = boolean;
   return obj;
 }

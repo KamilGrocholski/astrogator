@@ -11,6 +11,10 @@ Obj *vm_stack_curr(Vm *vm);
 void vm_exec_binary(Vm *vm, OpCode opcode);
 void vm_exec_binary_number(Vm *vm, OpCode opcode, Obj *left, Obj *right);
 
+void vm_exec_compare(Vm *vm, OpCode opcode);
+void vm_exec_compare_number(Vm *vm, OpCode opcode, Obj *left, Obj *right);
+void vm_exec_compare_boolean(Vm *vm, OpCode opcode, Obj *left, Obj *right);
+
 Vm *vm_new(InstructionList *instructionlist, ObjList *constants) {
   Vm *vm = malloc(sizeof(Vm));
   vm->ip = 0;
@@ -23,19 +27,41 @@ Vm *vm_new(InstructionList *instructionlist, ObjList *constants) {
 }
 
 void vm_run(Vm *vm) {
+#ifdef DEBUG
+  printf("START :: Instructions --\n");
+  for (int32_t i = vm->instructions->len - 1; i >= 0; i--) {
+    printf("instruction[%d]: %08X -> ", i, vm->instructions->list[i]);
+    uint8_t opcode = read_opcode(vm->instructions->list[i]);
+    printf("opcode: %s\n", op_to_str(opcode));
+  }
+  printf("END :: Instructions --\n");
+
+  printf("START :: Constants --\n");
+  for (int32_t i = vm->constants->len - 1; i >= 0; i--) {
+    printf("constant[%d]: ", i);
+    obj_print(&vm->constants->list[i]);
+  }
+  printf("END :: Constants --\n");
+
+  printf("START :: Initial stack state --\n");
+  for (int32_t i = vm->sp - 1; i >= 0; i--) {
+    printf("stack[%d]: ", i);
+    obj_print(&vm->stack->list[i]);
+  }
+  printf("END :: Initial stack state --\n");
+#endif /* ifdef DEBUG */
+
   while (vm->ip < vm->instructions->len) {
     uint32_t curr_instruction = vm->instructions->list[vm->ip];
     uint8_t opcode = read_opcode(curr_instruction);
 
-#ifdef DEBUG
-    printf("opcode: %s\n", op_to_str(opcode));
-#endif /* ifdef DEBUG */
+    /* #ifdef DEBUG */
+    /*     printf("opcode: %s\n", op_to_str(opcode)); */
+    /* #endif /1* ifdef DEBUG *1/ */
 
     switch (opcode) {
     case OP_CONST: {
       uint32_t const_idx = read_16bits(curr_instruction, 0);
-      printf("const idx: %d, ", const_idx);
-      obj_print(&vm->constants->list[const_idx]);
       vm_stack_push(vm, &vm->constants->list[const_idx]);
     } break;
     case OP_ADD:
@@ -44,16 +70,30 @@ void vm_run(Vm *vm) {
     case OP_DIVIDE: {
       vm_exec_binary(vm, opcode);
     } break;
+    case OP_EQUAL:
+    case OP_NOT_EQUAL:
+    case OP_GREATER_THAN:
+    case OP_EQUAL_OR_GREATER_THAN:
+    case OP_LESS_THAN:
+    case OP_EQUAL_OR_LESS_THAN: {
+      vm_exec_compare(vm, opcode);
+    } break;
+    default:
+      printf("vm_run: invalid opcode %s\n", op_to_str(opcode));
+      exit(1);
+      break;
     }
 
     vm->ip++;
   }
 
 #ifdef DEBUG
-  for (uint32_t i = 0; i < vm->sp; i++) {
+  printf("START :: Final stack state --\n");
+  for (int32_t i = vm->sp - 1; i >= 0; i--) {
     printf("stack[%d]: ", i);
     obj_print(&vm->stack->list[i]);
   }
+  printf("END :: Final stack state --\n");
 #endif /* ifdef DEBUG */
 }
 
@@ -73,7 +113,7 @@ Obj *vm_stack_curr(Vm *vm) { return &vm->stack->list[vm->sp - 1]; }
 
 void vm_exec_binary(Vm *vm, OpCode opcode) {
   Obj *right = vm_stack_pop(vm);
-  Obj *left = vm_stack_curr(vm);
+  Obj *left = vm_stack_pop(vm);
   if (left->kind != right->kind) {
     printf("vm_exec_binary left kind != right kind\n");
     exit(1);
@@ -83,28 +123,101 @@ void vm_exec_binary(Vm *vm, OpCode opcode) {
   case OBJ_NUMBER:
     vm_exec_binary_number(vm, opcode, left, right);
     break;
+  default:
+    printf("vm_exec_binary: invalid opcode %s\n", op_to_str(opcode));
+    exit(1);
+    break;
   }
 }
 
 void vm_exec_binary_number(Vm *vm, OpCode opcode, Obj *left, Obj *right) {
+  double result;
   switch (opcode) {
   case OP_ADD:
-    left->data.number += right->data.number;
+    result = left->data.number + right->data.number;
     break;
   case OP_SUBTRACT:
-    left->data.number -= right->data.number;
+    result = left->data.number - right->data.number;
     break;
   case OP_MULTIPLY:
-    left->data.number *= right->data.number;
+    result = left->data.number * right->data.number;
     break;
   case OP_DIVIDE:
-    left->data.number /= right->data.number;
-    printf("CURR:");
-    obj_print(vm_stack_curr(vm));
+    result = left->data.number / right->data.number;
     break;
   default:
     printf("vm_exec_binary_number: invalid opcode %s\n", op_to_str(opcode));
     exit(1);
     break;
   }
+  vm_stack_push(vm, obj_number_new(result));
+}
+
+void vm_exec_compare(Vm *vm, OpCode opcode) {
+  Obj *right = vm_stack_pop(vm);
+  Obj *left = vm_stack_pop(vm);
+  if (left->kind != right->kind) {
+    printf("vm_exec_compare left kind != right kind\n");
+    exit(1);
+  }
+
+  switch (left->kind) {
+  case OBJ_NUMBER:
+    vm_exec_compare_number(vm, opcode, left, right);
+    break;
+  case OBJ_BOOLEAN:
+    vm_exec_compare_boolean(vm, opcode, left, right);
+    break;
+  default:
+    printf("vm_exec_compare: invalid opcode %s\n", op_to_str(opcode));
+    exit(1);
+    break;
+  }
+}
+
+void vm_exec_compare_number(Vm *vm, OpCode opcode, Obj *left, Obj *right) {
+  bool result;
+  switch (opcode) {
+  case OP_EQUAL:
+    result = left->data.number == right->data.number;
+    break;
+  case OP_NOT_EQUAL:
+    result = left->data.number != right->data.number;
+    break;
+  case OP_LESS_THAN:
+    result = left->data.number < right->data.number;
+    break;
+  case OP_EQUAL_OR_LESS_THAN:
+    result = left->data.number <= right->data.number;
+    break;
+  case OP_GREATER_THAN:
+    result = left->data.number > right->data.number;
+    break;
+  case OP_EQUAL_OR_GREATER_THAN:
+    result = left->data.number >= right->data.number;
+    break;
+  default:
+    printf("vm_exec_compare_number: invalid opcode %s\n", op_to_str(opcode));
+    exit(1);
+    break;
+  }
+
+  vm_stack_push(vm, obj_boolean_new(result));
+}
+
+void vm_exec_compare_boolean(Vm *vm, OpCode opcode, Obj *left, Obj *right) {
+  bool result;
+  switch (opcode) {
+  case OP_EQUAL:
+    result = left->data.boolean == right->data.boolean;
+    break;
+  case OP_NOT_EQUAL:
+    result = left->data.boolean != right->data.boolean;
+    break;
+  default:
+    printf("vm_exec_compare_boolean: invalid opcode %s\n", op_to_str(opcode));
+    exit(1);
+    break;
+  }
+  vm_stack_push(vm, obj_boolean_new(result));
 }

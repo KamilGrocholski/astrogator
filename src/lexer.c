@@ -15,7 +15,48 @@ static void read_int(Lexer *lexer, Token *token);
 static void read_ident(Lexer *lexer, Token *token);
 static TokenKind get_ident_kind_by_literal(char *literal);
 
-// TODO convert to array
+const char *token_lookup[] = {
+    [TOKEN_LET] = "LET",
+    [TOKEN_CONST] = "CONST",
+    [TOKEN_DOT] = "DOT",
+    [TOKEN_DOUBLE_DOT] = "DOUBLE_DOT",
+    [TOKEN_INT] = "INT",
+    [TOKEN_LPAREN] = "LPAREN",
+    [TOKEN_RPAREN] = "RPAREN",
+    [TOKEN_LBRACKET] = "LBRACKET",
+    [TOKEN_RBRACKET] = "RBRACKET",
+    [TOKEN_LCURLY] = "LCURLY",
+    [TOKEN_RCURLY] = "RCURLY",
+    [TOKEN_STRING] = "STRING",
+    [TOKEN_PLUS] = "PLUS",
+    [TOKEN_MINUS] = "MINUS",
+    [TOKEN_ASTERISK] = "ASTERISK",
+    [TOKEN_SLASH] = "SLASH",
+    [TOKEN_PERCENT] = "PERCENT",
+    [TOKEN_ERROR] = "ERROR",
+    [TOKEN_IDENT] = "IDENT",
+    [TOKEN_ILLEGAL] = "ILLEGAL",
+    [TOKEN_SEMICOLON] = "SEMICOLON",
+    [TOKEN_ASSIGN] = "ASSIGN",
+    [TOKEN_EQUAL] = "EQUAL",
+    [TOKEN_NOT_EQUAL] = "NOT_EQUAL",
+    [TOKEN_BANG] = "BANG",
+    [TOKEN_COMMA] = "COMMA",
+    [TOKEN_FN] = "FN",
+    [TOKEN_RETURN] = "RETURN",
+    [TOKEN_TRUE] = "TRUE",
+    [TOKEN_FALSE] = "FALSE",
+    [TOKEN_NIL] = "NIL",
+    [TOKEN_FOR] = "FOR",
+    [TOKEN_RANGE] = "RANGE",
+    [TOKEN_IN] = "IN",
+    [TOKEN_IF] = "IF",
+    [TOKEN_ELSE] = "ELSE",
+    [TOKEN_EOF] = "EOF",
+};
+
+const char *token_kind_to_str(TokenKind kind) { return token_lookup[kind]; }
+
 bool token_is_operator(TokenKind kind) {
   switch (kind) {
   case TOKEN_PLUS:
@@ -24,7 +65,6 @@ bool token_is_operator(TokenKind kind) {
   case TOKEN_SLASH:
   case TOKEN_EQUAL:
   case TOKEN_NOT_EQUAL:
-  case TOKEN_PERCENT:
     return true;
   default:
     return false;
@@ -47,89 +87,6 @@ size_t token_get_precedence(TokenKind kind) {
   default:
     return 0;
   }
-}
-
-// TODO convert to array
-char *token_kind_to_str(TokenKind kind) {
-  switch (kind) {
-  case TOKEN_LET:
-    return "LET";
-  case TOKEN_CONST:
-    return "CONST";
-  case TOKEN_DOT:
-    return "DOT";
-  case TOKEN_DOUBLE_DOT:
-    return "DOUBLE_DOT";
-  case TOKEN_INT:
-    return "INT";
-  case TOKEN_LPAREN:
-    return "LPAREN";
-  case TOKEN_RPAREN:
-    return "RPAREN";
-  case TOKEN_LBRACKET:
-    return "LBRACKET";
-  case TOKEN_RBRACKET:
-    return "RBRACKET";
-  case TOKEN_LCURLY:
-    return "LCURLY";
-  case TOKEN_RCURLY:
-    return "RBRACKET";
-  case TOKEN_STRING:
-    return "STRING";
-  case TOKEN_PLUS:
-    return "PLUS";
-  case TOKEN_MINUS:
-    return "MINUS";
-  case TOKEN_ASTERISK:
-    return "ASTERISK";
-  case TOKEN_SLASH:
-    return "SLASH";
-  case TOKEN_PERCENT:
-    return "PERCENT";
-  case TOKEN_ERROR:
-    return "ERROR";
-  case TOKEN_IDENT:
-    return "IDENT";
-  case TOKEN_ILLEGAL:
-    return "ILLEGAL";
-  case TOKEN_SEMICOLON:
-    return "SEMICOLON";
-  case TOKEN_ASSIGN:
-    return "ASSIGN";
-  case TOKEN_EQUAL:
-    return "EQUAL";
-  case TOKEN_NOT_EQUAL:
-    return "NOT_EQUAL";
-  case TOKEN_BANG:
-    return "BANG";
-  case TOKEN_COMMA:
-    return "COMMA";
-  case TOKEN_FN:
-    return "FN";
-  case TOKEN_RETURN:
-    return "RETURN";
-  case TOKEN_TRUE:
-    return "TRUE";
-  case TOKEN_FALSE:
-    return "FALSE";
-  case TOKEN_NIL:
-    return "NIL";
-  case TOKEN_FOR:
-    return "FOR";
-  case TOKEN_RANGE:
-    return "RANGE";
-  case TOKEN_IN:
-    return "IN";
-  case TOKEN_IF:
-    return "IF";
-  case TOKEN_ELSE:
-    return "ELSE";
-  case TOKEN_EOF:
-    return "EOF";
-  }
-
-  printf("unknown token kind %d\n", kind);
-  exit(1);
 }
 
 void lexer_init(Lexer *lexer, char *input, size_t input_len) {
@@ -261,10 +218,11 @@ void lexer_get_next_token(Lexer *lexer, Token *token) {
     read_ident(lexer, token);
     return;
   }
-
+  printf("Unhandled character: '%c'\n", lexer->ch);
   token->kind = TOKEN_ILLEGAL;
   token->literal = NULL;
   next_ch(lexer);
+  return;
 }
 
 static void skip_whitespace(Lexer *lexer) {

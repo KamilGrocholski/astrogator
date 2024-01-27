@@ -1,27 +1,36 @@
+#include <stdarg.h>
+#include <stdio.h>
+
+#include "../src/code.h"
 #include "../src/vm.h"
 
+uint32_t encode_instruction_test(OpCode opcode, ...) {
+  va_list args;
+  va_start(args, opcode);
+
+  uint32_t result = encode_instruction(opcode, args);
+
+  va_end(args);
+  return result;
+}
+
 int main() {
-  Obj stack[] = {
-      (Obj){.kind = OBJ_NUMBER, .data.number = 10.0},
-      (Obj){.kind = OBJ_NUMBER, .data.number = 20.0},
+  InstructionList *instructionlist = instructionlist_new();
+  ObjList *constants = objlist_new();
 
-      (Obj){.kind = OBJ_BOOLEAN, .data.boolean = true},
-      (Obj){.kind = OBJ_BOOLEAN, .data.boolean = false},
-  };
+  objlist_append(constants, &(Obj){.kind = OBJ_NUMBER, .data.number = 10});
+  objlist_append(constants, &(Obj){.kind = OBJ_NUMBER, .data.number = 20});
+  objlist_append(constants, &(Obj){.kind = OBJ_NUMBER, .data.number = 5});
 
-  Instruction instructions[] = {
-      *instruction_new(OP_CONST, 0), *instruction_new(OP_CONST, 1),
-      *instruction_new(OP_ADD, 0),   *instruction_new(OP_PRINT, 0),
+  instructionlist_append(instructionlist, encode_instruction_test(OP_CONST, 0));
+  instructionlist_append(instructionlist, encode_instruction_test(OP_CONST, 1));
+  instructionlist_append(instructionlist, encode_instruction_test(OP_ADD));
+  instructionlist_append(instructionlist, encode_instruction_test(OP_CONST, 2));
+  instructionlist_append(instructionlist, encode_instruction_test(OP_DIVIDE));
 
-      *instruction_new(OP_CONST, 2), *instruction_new(OP_CONST, 3),
-      *instruction_new(OP_EQUAL, 0), *instruction_new(OP_PRINT, 0),
-  };
-
-  Vm vm;
-  vm_init(&vm, instructions, sizeof(instructions) / sizeof(instructions[0]),
-          stack, 30);
-  vm_run(&vm);
-  vm_free(&vm);
+  Vm *vm = vm_new(instructionlist, constants);
+  vm_run(vm);
+  vm_free(vm);
 
   return 0;
 }

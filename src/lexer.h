@@ -59,7 +59,7 @@ typedef struct {
 
 void lexer_init(Lexer *lexer, char *input, size_t input_len);
 void lexer_get_next_token(Lexer *lexer, Token *token);
-char *token_kind_to_str(TokenKind kind);
+const char *token_kind_to_str(TokenKind kind);
 bool token_is_operator(TokenKind kind);
 size_t token_get_precedence(TokenKind kind);
 

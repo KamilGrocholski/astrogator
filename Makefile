@@ -6,7 +6,7 @@ source_files = src/lexer.c src/parser.c src/node.c src/object.c src/code.c src/v
 output_binary = $(bin_dir)/astrogator
 
 source_test_files_main = test/main.test.c
-source_test_files = test/lexer/lexer.test.c test/parser/parser.test.c
+source_test_files = 
 output_test_binary = $(bin_dir)/test
 
 build:

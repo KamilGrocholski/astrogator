@@ -4,6 +4,8 @@
 
 #include "node.h"
 
+void exp_print_helper(Exp *exp, int indent);
+
 Program *program_new() {
   Program *program = (Program *)malloc(sizeof(Program));
   if (program == NULL) {
@@ -40,42 +42,45 @@ void program_append(Program *program, Stmt *stmt) {
 //
 //
 void stmt_print(Stmt *stmt) {
-  char *kind_str = stmt_kind_to_str(stmt->kind);
+  if (!stmt) {
+    printf("Null statement\n");
+    return;
+  }
 
-  switch (stmt->kind) {
-  case STMT_EXP:
-    printf("kind: %s, ", kind_str);
-    exp_print(stmt->data.exp);
-    break;
-  case STMT_LET:
-    printf("kind: %s, let %s = %s;\n", kind_str, stmt->data.let.name,
-           exp_kind_to_str(stmt->data.let.value->kind));
+  printf("%s", stmt_kind_to_str(stmt->kind));
+
+  if (stmt->kind == STMT_LET || stmt->kind == STMT_CONST ||
+      stmt->kind == STMT_REASSIGN) {
+    printf(" (%s, ", stmt->data.let.name);
     exp_print(stmt->data.let.value);
-    break;
-  case STMT_CONST:
-    printf("kind: %s, const %s = %s;\n", kind_str, stmt->data.constant.name,
-           exp_kind_to_str(stmt->data.constant.value->kind));
-    exp_print(stmt->data.constant.value);
-    break;
-  case STMT_RETURN:
-    printf("return ");
-    exp_print(stmt->data.ret.value);
-    break;
-  case STMT_BLOCK:
-    printf("{\n");
+    printf(")");
+  } else if (stmt->kind == STMT_EXP) {
+    exp_print(stmt->data.exp);
+  } else if (stmt->kind == STMT_BLOCK) {
+    printf(" {");
     for (size_t i = 0; i < stmt->data.block.len; i++) {
+      printf("\n  ");
       stmt_print(stmt->data.block.stmts[i]);
     }
-    printf("}\n");
-    break;
-  case STMT_IF_ELSE:
-    printf("if else\n");
-    break;
-  case STMT_REASSIGN:
-    printf("%s = ", stmt->data.reassign.name);
-    exp_print(stmt->data.reassign.value);
-    break;
+    printf("\n}");
+  } else if (stmt->kind == STMT_RETURN) {
+    if (stmt->data.ret.value) {
+      printf(" ");
+      exp_print(stmt->data.ret.value);
+    }
+  } else if (stmt->kind == STMT_IF_ELSE) {
+    printf(" (");
+    exp_print(stmt->data.if_else.condition);
+    printf(") ");
+    stmt_print(stmt->data.if_else.consequence);
+
+    if (stmt->data.if_else.alternative) {
+      printf(" else ");
+      stmt_print(stmt->data.if_else.alternative);
+    }
   }
+
+  printf("\n");
 }
 
 char *stmt_kind_to_str(StmtKind kind) {
@@ -197,53 +202,85 @@ void stmt_block_append(Stmt *block, Stmt *inner_stmt) {
 //
 //
 //
-void exp_print(Exp *exp) {
-  char *kind_str = exp_kind_to_str(exp->kind);
+void print_indent(int indent) {
+  for (int i = 0; i < indent; i++) {
+    printf("  ");
+  }
+}
+
+void exp_print_helper(Exp *exp, int indent) {
+  if (!exp) {
+    printf("Null expression\n");
+    return;
+  }
 
   switch (exp->kind) {
-  case EXP_NUMBER:
-    printf("kind: %s, number: |%f|\n", kind_str, exp->data.number);
-    break;
-  case EXP_STRING:
-    printf("kind: %s, string: |%s|\n", kind_str, exp->data.string);
-    break;
-  case EXP_ARRAY:
-    printf("[\n");
-    exp_print(exp->data.array.list);
-    printf("]\n");
-    break;
   case EXP_IDENT:
-    printf("kind: %s, ident: |%s|\n", kind_str, exp->data.string);
+  case EXP_STRING:
+    printf("%s(%s)", exp_kind_to_str(exp->kind), exp->data.string);
     break;
-  case EXP_LIST:
-    for (size_t i = 0; i < exp->data.list.len; i++) {
-      exp_print(exp->data.list.elements[i]);
-      printf(",");
-    }
+
+  case EXP_NUMBER:
+    printf("%s(%lf)", exp_kind_to_str(exp->kind), exp->data.number);
     break;
-  case EXP_FN:
-    printf("\nfn %s(\n", exp->data.fn.name);
-    exp_print(exp->data.fn.params);
-    printf(")");
-    stmt_print(exp->data.fn.body);
-    break;
-  case EXP_CALL:
-    printf("(");
-    printf(")");
-    break;
+
   case EXP_BOOL:
-    printf("%s", exp->data.boolean ? "TRUE" : "FALSE");
+    printf("%s(%s)", exp_kind_to_str(exp->kind),
+           exp->data.boolean ? "true" : "false");
     break;
-  /* case EXP_LOOP: */
-  /*   printf("for \n"); */
-  /*   break; */
+
+  case EXP_FN:
+    printf("%s(name: %s, params: ", exp_kind_to_str(exp->kind),
+           exp->data.fn.name);
+    exp_print(exp->data.fn.params);
+    printf(", body: ");
+    stmt_print(exp->data.fn.body);
+    printf(")");
+    break;
+
+  case EXP_CALL:
+    printf("%s(name: %s, args: ", exp_kind_to_str(exp->kind),
+           exp->data.call.name);
+    exp_print(exp->data.call.args);
+    printf(")");
+    break;
+
+  case EXP_ARRAY:
+    printf("%s(list: ", exp_kind_to_str(exp->kind));
+    exp_print(exp->data.array.list);
+    printf(")");
+    break;
+
+  case EXP_LIST:
+    printf("%s[", exp_kind_to_str(exp->kind));
+    for (size_t i = 0; i < exp->data.list.len; i++) {
+      if (i > 0) {
+        printf(", ");
+      }
+      exp_print(exp->data.list.elements[i]);
+    }
+    printf("]");
+    break;
+
   case EXP_INFIX:
-    printf("infix\n");
+    printf("(");
+    exp_print_helper(exp->data.infix.left, indent + 1);
+    printf("\n");
+    print_indent(indent + 1);
+    printf("%s", token_kind_to_str(exp->data.infix.op));
+    printf(" ");
+    exp_print_helper(exp->data.infix.right, indent + 1);
+    printf(")");
     break;
-  case EXP_NIL:
-    printf("NIL");
-    break;
+
+  default:
+    printf("%s", exp_kind_to_str(exp->kind));
   }
+}
+
+void exp_print(Exp *exp) {
+  exp_print_helper(exp, 0);
+  printf("\n");
 }
 
 char *exp_kind_to_str(ExpKind kind) {

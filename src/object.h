@@ -8,12 +8,15 @@
 typedef enum {
   OBJ_NUMBER,
   OBJ_STRING,
+  OBJ_BOOLEAN,
 } ObjKind;
 
 typedef struct {
   ObjKind kind;
   union {
     double number;
+
+    bool boolean;
 
     struct {
       char *value;
@@ -41,5 +44,6 @@ void obj_print(Obj *obj);
 Obj *obj_new();
 Obj *obj_string_new(char *value, size_t len);
 Obj *obj_number_new(double value);
+Obj *obj_boolean_new(bool boolean);
 
 #endif //_OBJECT_H

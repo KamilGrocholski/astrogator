@@ -45,7 +45,7 @@ int main() {
     if (stmt != NULL) {
       program_append(program, stmt);
     } else {
-      printf("null stmt in program\n");
+      printf("parser: null stmt in program\n");
       exit(EXIT_FAILURE);
     }
   }

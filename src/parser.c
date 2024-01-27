@@ -14,9 +14,10 @@ Stmt *parse_stmt_block(Parser *parser);
 Stmt *parse_stmt_if_else(Parser *parser);
 Stmt *parse_stmt_return(Parser *parser);
 
-Exp *parse_exp(Parser *parser);
+Exp *parse_exp(Parser *parser, size_t precedence);
 Exp *parse_exp_normal(Parser *parser);
-Exp *parse_exp_infix(Parser *parser, size_t precedence, Exp *left);
+// No need for the sep fn
+/* Exp *parse_exp_infix(Parser *parser, size_t precedence, Exp *left); */
 Exp *parse_exp_number(Parser *parser);
 Exp *parse_exp_string(Parser *parser);
 Exp *parse_exp_ident(Parser *parser);
@@ -82,7 +83,7 @@ Stmt *parse_stmt_let(Parser *parser) {
   char *name = parser->curr_token.literal;
   consume(parser, TOKEN_IDENT);
   consume(parser, TOKEN_ASSIGN);
-  Exp *value = parse_exp(parser);
+  Exp *value = parse_exp(parser, 0);
   consume(parser, TOKEN_SEMICOLON);
 
   Stmt *stmt = stmt_let_new(name, value);
@@ -94,7 +95,7 @@ Stmt *parse_stmt_const(Parser *parser) {
   char *name = parser->curr_token.literal;
   consume(parser, TOKEN_IDENT);
   consume(parser, TOKEN_ASSIGN);
-  Exp *value = parse_exp(parser);
+  Exp *value = parse_exp(parser, 0);
   consume(parser, TOKEN_SEMICOLON);
 
   Stmt *stmt = stmt_const_new(name, value);
@@ -105,7 +106,7 @@ Stmt *parse_stmt_reassign(Parser *parser) {
   char *name = parser->curr_token.literal;
   consume(parser, TOKEN_IDENT);
   consume(parser, TOKEN_ASSIGN);
-  Exp *value = parse_exp(parser);
+  Exp *value = parse_exp(parser, 0);
   consume(parser, TOKEN_SEMICOLON);
   Stmt *reassign = stmt_reassign_new(name, value);
   return reassign;
@@ -113,7 +114,7 @@ Stmt *parse_stmt_reassign(Parser *parser) {
 
 Stmt *parse_stmt_if_else(Parser *parser) {
   consume(parser, TOKEN_IF);
-  Exp *condition = parse_exp(parser);
+  Exp *condition = parse_exp(parser, 0);
   Stmt *consequence = parse_stmt_block(parser);
   Stmt *alternative = NULL;
 
@@ -132,7 +133,7 @@ Stmt *parse_stmt_if_else(Parser *parser) {
 
 Stmt *parse_stmt_return(Parser *parser) {
   consume(parser, TOKEN_RETURN);
-  Exp *value = parse_exp(parser);
+  Exp *value = parse_exp(parser, 0);
   consume(parser, TOKEN_SEMICOLON);
   Stmt *ret = stmt_ret_new(value);
   return ret;
@@ -153,7 +154,7 @@ Stmt *parse_stmt_block(Parser *parser) {
 }
 
 Stmt *parse_stmt_exp(Parser *parser) {
-  Exp *exp = parse_exp(parser);
+  Exp *exp = parse_exp(parser, 0);
   Stmt *stmt = stmt_exp_new(exp);
   if (parser->curr_token.kind == TOKEN_SEMICOLON) {
     advance(parser);
@@ -161,32 +162,50 @@ Stmt *parse_stmt_exp(Parser *parser) {
   return stmt;
 }
 
-Exp *parse_exp(Parser *parser) {
-  return parse_exp_infix(parser, 0, parse_exp_normal(parser));
+Exp *parse_exp(Parser *parser, size_t precedence) {
+  Exp *left = parse_exp_normal(parser);
 
-  printf("unhandled token kind in parse_exp %s\n",
-         token_kind_to_str(parser->curr_token.kind));
-  exit(1);
-}
+  size_t new_precedence = token_get_precedence(parser->curr_token.kind);
 
-Exp *parse_exp_infix(Parser *parser, size_t precedence, Exp *left) {
-  while (token_is_operator(parser->curr_token.kind) &&
-         precedence < token_get_precedence(parser->curr_token.kind)) {
-    TokenKind op_kind = parser->curr_token.kind;
-    consume(parser, op_kind);
+  while (parser->curr_token.kind != TOKEN_SEMICOLON &&
+         precedence < new_precedence) {
+    TokenKind op = parser->curr_token.kind;
+    consume(parser, op);
+    Exp *right = parse_exp(parser, new_precedence);
+    left = exp_infix_new(op, left, right);
 
-    Exp *right = parse_exp_normal(parser);
-    while (token_is_operator(parser->curr_token.kind) &&
-           precedence < token_get_precedence(parser->curr_token.kind)) {
-      right = parse_exp_infix(
-          parser, token_get_precedence(parser->curr_token.kind), right);
-    }
-
-    left = exp_infix_new(op_kind, left, right);
+    new_precedence = token_get_precedence(parser->curr_token.kind);
   }
 
   return left;
 }
+
+/* // No need for sep fn */
+/* Exp *parse_exp_infix(Parser *parser, size_t precedence, Exp *left) { */
+/*   while (token_is_operator(parser->curr_token.kind) && */
+/*          precedence < token_get_precedence(parser->curr_token.kind)) { */
+/*     TokenKind op_kind = parser->curr_token.kind; */
+/*     consume(parser, op_kind); */
+
+/*     Exp *right = parse_exp_normal(parser); */
+/*     Exp *newLeft = exp_infix_new(op_kind, left, right); */
+/*     left = parse_exp_infix(parser, precedence, newLeft); */
+/*   } */
+
+/*   /1* TokenKind op; *1/ */
+/*   /1* if (token_is_operator(parser->curr_token.kind)) { *1/ */
+/*   /1*   op = parser->curr_token.kind; *1/ */
+/*   /1* } *1/ */
+/*   /1* size_t prec = token_get_precedence(parser->curr_token.kind); *1/ */
+/*   /1* consume(parser, op); *1/ */
+/*   /1* Exp *infix = exp_new(); *1/ */
+/*   /1* infix->kind = EXP_INFIX; *1/ */
+/*   /1* infix->data.infix.op = op; *1/ */
+/*   /1* infix->data.infix.left = left; *1/ */
+/*   /1* infix->data.infix.right = parse_exp(parser); *1/ */
+
+/*   return left; */
+/* } */
 
 Exp *parse_exp_normal(Parser *parser) {
   switch (parser->curr_token.kind) {
@@ -243,12 +262,12 @@ Exp *parse_exp_list(Parser *parser, TokenKind closing_token_kind) {
     return list;
   }
 
-  Exp *first = parse_exp(parser);
+  Exp *first = parse_exp(parser, 0);
   exp_list_append(list, first);
 
   while (parser->curr_token.kind == TOKEN_COMMA) {
     consume(parser, TOKEN_COMMA);
-    Exp *element = parse_exp(parser);
+    Exp *element = parse_exp(parser, 0);
     exp_list_append(list, element);
   }
 

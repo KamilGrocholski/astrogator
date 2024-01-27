@@ -35,7 +35,7 @@ typedef enum {
 
 typedef struct Stmt {
   StmtKind kind;
-  union data {
+  union {
     Exp *exp;
 
     struct {

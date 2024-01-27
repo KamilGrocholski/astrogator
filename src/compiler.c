@@ -61,10 +61,22 @@ void compile_exp(Compiler *compiler, Exp *exp) {
     case TOKEN_SLASH:
       emit(compiler, OP_DIVIDE);
       break;
+    case TOKEN_EQUAL:
+      emit(compiler, OP_EQUAL);
+      break;
+    case TOKEN_NOT_EQUAL:
+      emit(compiler, OP_NOT_EQUAL);
+      break;
     }
   } break;
   case EXP_NUMBER: {
     Obj *obj = obj_number_new(exp->data.number);
+    uint32_t const_idx = compiler->constants->len;
+    objlist_append(compiler->constants, obj);
+    emit(compiler, OP_CONST, const_idx);
+  } break;
+  case EXP_BOOL: {
+    Obj *obj = obj_number_new(exp->data.boolean);
     uint32_t const_idx = compiler->constants->len;
     objlist_append(compiler->constants, obj);
     emit(compiler, OP_CONST, const_idx);

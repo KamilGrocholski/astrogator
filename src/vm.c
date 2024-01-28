@@ -4,7 +4,7 @@
 
 #include "vm.h"
 
-// TODO create a separate str utils
+// TODO create separate str utils
 bool str_cmp(char *v1, size_t l1, char *v2, size_t l2);
 
 void vm_stack_push(Vm *vm, Obj *obj);
@@ -75,6 +75,11 @@ void vm_run(Vm *vm) {
     case OP_CONST: {
       uint16_t const_idx = read_16bits(curr_instruction, 0);
       vm_stack_push(vm, &vm->constants->list[const_idx]);
+    } break;
+    case OP_CHANGE_GLOBAL: {
+      uint16_t idx = read_16bits(curr_instruction, 0);
+      Obj *obj = vm_stack_pop(vm);
+      vm->globals->list[idx] = *obj;
     } break;
     case OP_SET_GLOBAL: {
       uint16_t idx = read_16bits(curr_instruction, 0);

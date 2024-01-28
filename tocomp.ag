@@ -2,5 +2,4 @@ let a = "on";
 let c = "ok";
 
 let are_equal = a == c;
-
-
+a = "ok";

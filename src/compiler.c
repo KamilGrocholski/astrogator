@@ -51,6 +51,19 @@ void compile_stmt(Compiler *compiler, Stmt *stmt) {
     compile_exp(compiler, stmt->data.exp);
     emit(compiler, OP_RETURN_VALUE);
     break;
+  case STMT_REASSIGN: {
+    StEntry *entry =
+        st_lookup(compiler->symbol_table, stmt->data.reassign.name);
+    if (entry == NULL) {
+      printf("compile_stmt: variable does not exist\n");
+      exit(1);
+    }
+    compile_exp(compiler, stmt->data.reassign.value);
+    emit(compiler,
+         entry->entry_scope == ST_ENTRY_SCOPE_GLOBAL ? OP_CHANGE_GLOBAL
+                                                     : OP_CHANGE_LOCAL,
+         entry->value);
+  } break;
   }
 }
 

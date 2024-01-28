@@ -14,7 +14,8 @@ const uint8_t op_argsc[] = {
     [OP_TRUE] = 0,         [OP_FALSE] = 0,
     [OP_NULL] = 0,         [OP_RETURN_VALUE] = 0,
     [OP_SET_GLOBAL] = 1,   [OP_SET_LOCAL] = 1,
-    [OP_GET_GLOBAL] = 1,   [OP_GET_LOCAL] = 1,
+    [OP_GET_GLOBAL] = 1,   [OP_CHANGE_GLOBAL] = 1,
+    [OP_CHANGE_LOCAL] = 1, [OP_GET_LOCAL] = 1,
     [OP_POP] = 0,
 };
 
@@ -27,7 +28,8 @@ const uint8_t op_argsw[] = {
     [OP_TRUE] = 0,         [OP_FALSE] = 0,
     [OP_NULL] = 0,         [OP_RETURN_VALUE] = 0,
     [OP_SET_GLOBAL] = 2,   [OP_SET_LOCAL] = 2,
-    [OP_GET_GLOBAL] = 2,   [OP_GET_LOCAL] = 2,
+    [OP_GET_GLOBAL] = 2,   [OP_CHANGE_GLOBAL] = 2,
+    [OP_CHANGE_LOCAL] = 2, [OP_GET_LOCAL] = 2,
     [OP_POP] = 0,
 };
 
@@ -53,6 +55,8 @@ const char *op_str[] = {
     [OP_SET_LOCAL] = "OP_SET_LOCAL",
     [OP_GET_GLOBAL] = "OP_GET_GLOBAL",
     [OP_GET_LOCAL] = "OP_GET_LOCAL",
+    [OP_CHANGE_GLOBAL] = "OP_CHANGE_GLOBAL",
+    [OP_CHANGE_LOCAL] = "OP_CHANGE_LOCAL",
     [OP_POP] = "OP_POP",
 };
 

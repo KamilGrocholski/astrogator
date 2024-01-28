@@ -64,6 +64,11 @@ void compile_stmt(Compiler *compiler, Stmt *stmt) {
                                                      : OP_CHANGE_LOCAL,
          entry->value);
   } break;
+  default:
+    printf("compile_stmt: invalid stmt kind %s\n",
+           stmt_kind_to_str(stmt->kind));
+    exit(1);
+    break;
   }
 }
 
@@ -137,6 +142,10 @@ void compile_exp(Compiler *compiler, Exp *exp) {
       break;
     }
   } break;
+  default:
+    printf("compile_stmt: invalid exp kind %s\n", exp_kind_to_str(exp->kind));
+    exit(1);
+    break;
   }
 }
 

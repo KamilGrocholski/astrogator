@@ -7,9 +7,11 @@
 #include "parser.h"
 #include "vm.h"
 
-int main() {
-  /* char *file_name = "index.ag"; */
-  char *file_name = "tocomp.ag";
+int main(int argc, char *argv[]) {
+  printf("argc: %d\n", argc);
+  char *file_name = argv[1];
+  printf("file_name: %s\n", file_name);
+
   size_t len = strlen(file_name);
 
   FILE *file = fopen(file_name, "r");
@@ -52,9 +54,12 @@ int main() {
 
   Compiler *compiler = compiler_new();
   compiler_compile(compiler, program);
+
   Vm *vm = vm_new(compiler->instructions, compiler->constants);
   vm_run(vm);
 
+  compiler_free(compiler);
+  vm_free(vm);
   free(input);
 
   return 0;

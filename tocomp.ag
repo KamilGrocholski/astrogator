@@ -2,4 +2,7 @@ let a = "on";
 let c = "ok";
 
 let are_equal = a == c;
-a = "ok";
+a = 234;
+are_equal = false;
+
+let l = are_equal;

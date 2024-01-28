@@ -21,6 +21,12 @@ typedef enum {
   OP_TRUE,
   OP_FALSE,
   OP_NULL,
+  OP_RETURN_VALUE,
+  OP_SET_GLOBAL,
+  OP_SET_LOCAL,
+  OP_GET_GLOBAL,
+  OP_GET_LOCAL,
+  OP_POP,
 } OpCode;
 
 typedef struct {

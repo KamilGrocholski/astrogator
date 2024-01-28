@@ -217,7 +217,7 @@ void exp_print_helper(Exp *exp, int indent) {
   switch (exp->kind) {
   case EXP_IDENT:
   case EXP_STRING:
-    printf("%s(%s)", exp_kind_to_str(exp->kind), exp->data.string);
+    printf("%s(%s)", exp_kind_to_str(exp->kind), exp->data.string.value);
     break;
 
   case EXP_NUMBER:
@@ -317,17 +317,19 @@ Exp *exp_new() {
   return exp;
 }
 
-Exp *exp_ident_new(char *ident) {
+Exp *exp_ident_new(char *ident, size_t len) {
   Exp *exp = exp_new();
   exp->kind = EXP_IDENT;
-  exp->data.string = ident;
+  exp->data.string.value = ident;
+  exp->data.string.len = len;
   return exp;
 }
 
-Exp *exp_string_new(char *string) {
+Exp *exp_string_new(char *value, size_t len) {
   Exp *exp = exp_new();
   exp->kind = EXP_STRING;
-  exp->data.string = string;
+  exp->data.string.value = value;
+  exp->data.string.len = len;
   return exp;
 }
 

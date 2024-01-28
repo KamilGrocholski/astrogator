@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "lexer.h"
 #include "node.h"
@@ -242,16 +243,16 @@ Exp *parse_exp_number(Parser *parser) {
 }
 
 Exp *parse_exp_string(Parser *parser) {
-  char *string = parser->curr_token.literal;
+  char *value = parser->curr_token.literal;
   consume(parser, TOKEN_STRING);
-  Exp *exp = exp_string_new(string);
+  Exp *exp = exp_string_new(value, strlen(value));
   return exp;
 }
 
 Exp *parse_exp_ident(Parser *parser) {
   char *ident = parser->curr_token.literal;
   consume(parser, TOKEN_IDENT);
-  Exp *exp = exp_ident_new(ident);
+  Exp *exp = exp_ident_new(ident, strlen(ident));
   return exp;
 }
 

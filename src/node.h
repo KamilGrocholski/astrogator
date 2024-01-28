@@ -74,7 +74,10 @@ typedef struct Stmt {
 typedef struct Exp {
   ExpKind kind;
   union {
-    char *string;
+    struct {
+      char *value;
+      size_t len;
+    } string;
 
     double number;
 
@@ -132,8 +135,8 @@ void stmt_block_append(Stmt *block, Stmt *inner_stmt);
 void exp_print(Exp *node);
 char *exp_kind_to_str(ExpKind kind);
 Exp *exp_new();
-Exp *exp_ident_new(char *ident);
-Exp *exp_string_new(char *string);
+Exp *exp_ident_new(char *ident, size_t len);
+Exp *exp_string_new(char *string, size_t len);
 Exp *exp_number_new(double value);
 Exp *exp_fn_new(char *name, Exp *params, Stmt *body);
 Exp *exp_call_new(char *name, Exp *args);

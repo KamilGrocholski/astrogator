@@ -65,6 +65,10 @@ bool token_is_operator(TokenKind kind) {
   case TOKEN_SLASH:
   case TOKEN_EQUAL:
   case TOKEN_NOT_EQUAL:
+  case TOKEN_GT:
+  case TOKEN_GTE:
+  case TOKEN_LT:
+  case TOKEN_LTE:
     return true;
   default:
     return false;
@@ -83,6 +87,10 @@ size_t token_get_precedence(TokenKind kind) {
     return 3;
   case TOKEN_EQUAL:
   case TOKEN_NOT_EQUAL:
+  case TOKEN_GT:
+  case TOKEN_GTE:
+  case TOKEN_LT:
+  case TOKEN_LTE:
     return 4;
   default:
     return 0;
@@ -134,6 +142,26 @@ void lexer_get_next_token(Lexer *lexer, Token *token) {
       return;
     }
     token->kind = TOKEN_BANG;
+    return;
+  case '>':
+    token->literal = NULL;
+    next_ch(lexer);
+    if (lexer->ch == '=') {
+      next_ch(lexer);
+      token->kind = TOKEN_GTE;
+      return;
+    }
+    token->kind = TOKEN_GT;
+    return;
+  case '<':
+    token->literal = NULL;
+    next_ch(lexer);
+    if (lexer->ch == '=') {
+      next_ch(lexer);
+      token->kind = TOKEN_LTE;
+      return;
+    }
+    token->kind = TOKEN_LT;
     return;
   case ';':
     token->kind = TOKEN_SEMICOLON;

@@ -17,6 +17,7 @@ Compiler *compiler_new() {
   }
   compiler->constants = objlist_new();
   compiler->instructions = instructionlist_new();
+  compiler->symbol_table = st_new(NULL);
 
   return compiler;
 }
@@ -36,6 +37,19 @@ void compile_stmt(Compiler *compiler, Stmt *stmt) {
   switch (stmt->kind) {
   case STMT_EXP:
     compile_exp(compiler, stmt->data.exp);
+    emit(compiler, OP_POP);
+    break;
+  case STMT_LET: {
+    StEntry *entry = st_insert(compiler->symbol_table, stmt->data.let.name);
+    compile_exp(compiler, stmt->data.let.value);
+    emit(compiler,
+         entry->entry_scope == ST_ENTRY_SCOPE_GLOBAL ? OP_SET_GLOBAL
+                                                     : OP_SET_LOCAL,
+         entry->value);
+  } break;
+  case STMT_RETURN:
+    compile_exp(compiler, stmt->data.exp);
+    emit(compiler, OP_RETURN_VALUE);
     break;
   }
 }
@@ -67,6 +81,18 @@ void compile_exp(Compiler *compiler, Exp *exp) {
     case TOKEN_NOT_EQUAL:
       emit(compiler, OP_NOT_EQUAL);
       break;
+    case TOKEN_GT:
+      emit(compiler, OP_GREATER_THAN);
+      break;
+    case TOKEN_GTE:
+      emit(compiler, OP_EQUAL_OR_GREATER_THAN);
+      break;
+    case TOKEN_LT:
+      emit(compiler, OP_LESS_THAN);
+      break;
+    case TOKEN_LTE:
+      emit(compiler, OP_EQUAL_OR_LESS_THAN);
+      break;
     }
   } break;
   case EXP_NUMBER: {
@@ -76,10 +102,27 @@ void compile_exp(Compiler *compiler, Exp *exp) {
     emit(compiler, OP_CONST, const_idx);
   } break;
   case EXP_BOOL: {
-    Obj *obj = obj_number_new(exp->data.boolean);
+    Obj *obj = obj_boolean_new(exp->data.boolean);
     uint32_t const_idx = compiler->constants->len;
     objlist_append(compiler->constants, obj);
     emit(compiler, OP_CONST, const_idx);
+  } break;
+  case EXP_STRING: {
+    Obj *obj = obj_string_new(exp->data.string.value, exp->data.string.len);
+    uint32_t const_idx = compiler->constants->len;
+    objlist_append(compiler->constants, obj);
+    emit(compiler, OP_CONST, const_idx);
+  } break;
+  case EXP_IDENT: {
+    StEntry *entry = st_lookup(compiler->symbol_table, exp->data.string.value);
+    switch (entry->entry_scope) {
+    case ST_ENTRY_SCOPE_GLOBAL:
+      emit(compiler, OP_GET_GLOBAL, entry->value);
+      break;
+    case ST_ENTRY_SCOPE_LOCAL:
+      emit(compiler, OP_GET_LOCAL, entry->value);
+      break;
+    }
   } break;
   }
 }

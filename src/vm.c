@@ -4,6 +4,9 @@
 
 #include "vm.h"
 
+// TODO create a separate str utils
+bool str_cmp(char *v1, size_t l1, char *v2, size_t l2);
+
 void vm_stack_push(Vm *vm, Obj *obj);
 Obj *vm_stack_pop(Vm *vm);
 Obj *vm_stack_curr(Vm *vm);
@@ -14,12 +17,14 @@ void vm_exec_binary_number(Vm *vm, OpCode opcode, Obj *left, Obj *right);
 void vm_exec_compare(Vm *vm, OpCode opcode);
 void vm_exec_compare_number(Vm *vm, OpCode opcode, Obj *left, Obj *right);
 void vm_exec_compare_boolean(Vm *vm, OpCode opcode, Obj *left, Obj *right);
+void vm_exec_compare_string(Vm *vm, OpCode opcode, Obj *left, Obj *right);
 
 Vm *vm_new(InstructionList *instructionlist, ObjList *constants) {
   Vm *vm = malloc(sizeof(Vm));
   vm->ip = 0;
   vm->sp = 0;
   vm->constants = constants;
+  vm->globals = objlist_new();
   vm->stack = objlist_new();
   vm->instructions = instructionlist;
 
@@ -28,6 +33,13 @@ Vm *vm_new(InstructionList *instructionlist, ObjList *constants) {
 
 void vm_run(Vm *vm) {
 #ifdef DEBUG
+  printf("START :: Initial globals state --\n");
+  for (int32_t i = vm->globals->len - 1; i >= 0; i--) {
+    printf("global[%d]: ", i);
+    obj_print(&vm->globals->list[i]);
+  }
+  printf("END :: Initial globals state --\n");
+
   printf("START :: Instructions --\n");
   for (int32_t i = vm->instructions->len - 1; i >= 0; i--) {
     printf("instruction[%d]: %08X -> ", i, vm->instructions->list[i]);
@@ -61,8 +73,17 @@ void vm_run(Vm *vm) {
 
     switch (opcode) {
     case OP_CONST: {
-      uint32_t const_idx = read_16bits(curr_instruction, 0);
+      uint16_t const_idx = read_16bits(curr_instruction, 0);
       vm_stack_push(vm, &vm->constants->list[const_idx]);
+    } break;
+    case OP_SET_GLOBAL: {
+      uint16_t idx = read_16bits(curr_instruction, 0);
+      Obj *obj = vm_stack_pop(vm);
+      objlist_insert(vm->globals, obj, idx);
+    } break;
+    case OP_GET_GLOBAL: {
+      uint16_t idx = read_16bits(curr_instruction, 0);
+      vm_stack_push(vm, &vm->globals->list[idx]);
     } break;
     case OP_ADD:
     case OP_SUBTRACT:
@@ -78,6 +99,9 @@ void vm_run(Vm *vm) {
     case OP_EQUAL_OR_LESS_THAN: {
       vm_exec_compare(vm, opcode);
     } break;
+    case OP_POP:
+      vm_stack_pop(vm);
+      break;
     default:
       printf("vm_run: invalid opcode %s\n", op_to_str(opcode));
       exit(1);
@@ -88,6 +112,13 @@ void vm_run(Vm *vm) {
   }
 
 #ifdef DEBUG
+  printf("START :: Final globals state --\n");
+  for (int32_t i = vm->globals->len - 1; i >= 0; i--) {
+    printf("global[%d]: ", i);
+    obj_print(&vm->globals->list[i]);
+  }
+  printf("END :: Final globals state --\n");
+
   printf("START :: Final stack state --\n");
   for (int32_t i = vm->sp - 1; i >= 0; i--) {
     printf("stack[%d]: ", i);
@@ -168,6 +199,9 @@ void vm_exec_compare(Vm *vm, OpCode opcode) {
   case OBJ_BOOLEAN:
     vm_exec_compare_boolean(vm, opcode, left, right);
     break;
+  case OBJ_STRING:
+    vm_exec_compare_string(vm, opcode, left, right);
+    break;
   default:
     printf("vm_exec_compare: invalid opcode %s\n", op_to_str(opcode));
     exit(1);
@@ -220,4 +254,37 @@ void vm_exec_compare_boolean(Vm *vm, OpCode opcode, Obj *left, Obj *right) {
     break;
   }
   vm_stack_push(vm, obj_boolean_new(result));
+}
+
+// TODO later create string utils and replace the inlines
+void vm_exec_compare_string(Vm *vm, OpCode opcode, Obj *left, Obj *right) {
+  bool result;
+  switch (opcode) {
+  case OP_EQUAL: {
+    result = str_cmp(left->data.string.value, left->data.string.len,
+                     right->data.string.value, right->data.string.len);
+  } break;
+  case OP_NOT_EQUAL: {
+    result = !str_cmp(left->data.string.value, left->data.string.len,
+                      right->data.string.value, right->data.string.len);
+  } break;
+  default:
+    printf("vm_exec_compare_string: invalid opcode %s\n", op_to_str(opcode));
+    exit(1);
+    break;
+  }
+
+  vm_stack_push(vm, obj_boolean_new(result));
+}
+
+bool str_cmp(char *v1, size_t l1, char *v2, size_t l2) {
+  if (l1 != l2) {
+    return false;
+  }
+  for (size_t i = 0; i < l1; i++) {
+    if (v1[i] != v2[i]) {
+      return false;
+    }
+  }
+  return true;
 }

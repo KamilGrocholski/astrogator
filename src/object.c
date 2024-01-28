@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "object.h"
 
@@ -12,6 +13,9 @@ void obj_print(Obj *obj) {
     break;
   case OBJ_BOOLEAN:
     printf("%s", obj->data.boolean ? "true" : "false");
+    break;
+  case OBJ_STRING:
+    printf("\"%s\"", obj->data.string.value);
     break;
   }
   printf("\n");

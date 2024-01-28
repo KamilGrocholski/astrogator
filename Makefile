@@ -1,8 +1,8 @@
 bin_dir = bin
-flags = -DDEBUG -pedantic -W
+flags = -DDEBUG -pedantic -W -g
 
 source_files_main = src/main.c
-source_files = src/lexer.c src/parser.c src/node.c src/object.c src/code.c src/vm.c src/compiler.c
+source_files = src/lexer.c src/parser.c src/node.c src/object.c src/code.c src/vm.c src/compiler.c src/st.c
 output_binary = $(bin_dir)/astrogator
 
 source_test_files_main = test/main.test.c

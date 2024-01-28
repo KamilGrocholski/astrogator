@@ -12,7 +12,10 @@ const uint8_t op_argsc[] = {
     [OP_LESS_THAN] = 0,    [OP_EQUAL_OR_LESS_THAN] = 0,
     [OP_AND] = 0,          [OP_OR] = 0,
     [OP_TRUE] = 0,         [OP_FALSE] = 0,
-    [OP_NULL] = 0,
+    [OP_NULL] = 0,         [OP_RETURN_VALUE] = 0,
+    [OP_SET_GLOBAL] = 1,   [OP_SET_LOCAL] = 1,
+    [OP_GET_GLOBAL] = 1,   [OP_GET_LOCAL] = 1,
+    [OP_POP] = 0,
 };
 
 const uint8_t op_argsw[] = {
@@ -22,7 +25,10 @@ const uint8_t op_argsw[] = {
     [OP_LESS_THAN] = 0,    [OP_EQUAL_OR_LESS_THAN] = 0,
     [OP_AND] = 0,          [OP_OR] = 0,
     [OP_TRUE] = 0,         [OP_FALSE] = 0,
-    [OP_NULL] = 0,
+    [OP_NULL] = 0,         [OP_RETURN_VALUE] = 0,
+    [OP_SET_GLOBAL] = 2,   [OP_SET_LOCAL] = 2,
+    [OP_GET_GLOBAL] = 2,   [OP_GET_LOCAL] = 2,
+    [OP_POP] = 0,
 };
 
 const char *op_str[] = {
@@ -42,6 +48,12 @@ const char *op_str[] = {
     [OP_TRUE] = "OP_TRUE",
     [OP_FALSE] = "OP_FALSE",
     [OP_NULL] = "OP_NULL",
+    [OP_RETURN_VALUE] = "OP_RETURN_VALUE",
+    [OP_SET_GLOBAL] = "OP_SET_GLOBAL",
+    [OP_SET_LOCAL] = "OP_SET_LOCAL",
+    [OP_GET_GLOBAL] = "OP_GET_GLOBAL",
+    [OP_GET_LOCAL] = "OP_GET_LOCAL",
+    [OP_POP] = "OP_POP",
 };
 
 const char *op_to_str(OpCode opcode) { return op_str[opcode]; }

@@ -11,6 +11,7 @@ typedef struct {
   uint32_t sp;
   ObjList *stack;
   ObjList *constants;
+  ObjList *globals;
   InstructionList *instructions;
 } Vm;
 
